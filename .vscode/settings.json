@@ -2,6 +2,10 @@
 	"search.exclude": {
 		"**/node_modules": true
 	},
+	"eslint.workingDirectories": [
+		{ "pattern": "./packages/*/" },
+		{ "pattern": "./packages-private/*/" }
+	],
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"typescript.enablePromptUseWorkspaceTsdk": true,
 	"files.associations": {

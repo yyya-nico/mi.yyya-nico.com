@@ -100,7 +100,7 @@ const props = defineProps<{
 
 const tab = ref('overview');
 const isSensitive = ref(props.file.isSensitive);
-const usageTab = ref<'note' | 'chat'>('note');
+const usageTab = ref<'note'>('note');
 const XNotes = defineAsyncComponent(() => import('./drive.file.notes.vue'));
 
 async function del() {

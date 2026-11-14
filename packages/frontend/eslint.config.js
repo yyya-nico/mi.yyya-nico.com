@@ -166,4 +166,15 @@ export default [
 			}],
 		},
 	},
+	{
+		files: ['test/**/*.ts', '.storybook/**/*.{ts,tsx}'],
+		languageOptions: {
+			parser: tsParser,
+			parserOptions: {
+				project: ['./tsconfig.eslint.json'],
+				tsconfigRootDir: import.meta.dirname,
+				sourceType: 'module',
+			},
+		},
+	},
 ];

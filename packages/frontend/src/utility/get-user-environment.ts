@@ -17,17 +17,37 @@ export type UserEnvironment = {
 	viaGetHighEntropyValues: false;
 };
 
+// Only model the Client Hints fields used here; requested values may be withheld.
+// https://wicg.github.io/ua-client-hints/#dom-navigatoruadata-gethighentropyvalues
+type HighEntropyUserAgentValues = {
+	platform: string;
+	platformVersion?: string;
+	fullVersionList?: { brand: string; version: string }[];
+};
+
+type UserAgentData = {
+	getHighEntropyValues(hints: string[]): Promise<HighEntropyUserAgentValues>;
+};
+
+function supportsHighEntropyValues(value: unknown): value is UserAgentData {
+	return typeof value === 'object' && value !== null &&
+		'getHighEntropyValues' in value && typeof value.getHighEntropyValues === 'function';
+}
+
 export async function getUserEnvironment(): Promise<UserEnvironment> {
-	if ('userAgentData' in navigator && navigator.userAgentData != null) {
+	const userAgentData = 'userAgentData' in navigator ? navigator.userAgentData : null;
+	if (supportsHighEntropyValues(userAgentData)) {
 		try {
-			const uaData: any = await navigator.userAgentData.getHighEntropyValues([
+			const uaData = await userAgentData.getHighEntropyValues([
 				'fullVersionList',
 				'platformVersion',
 			]);
 
+			if (!uaData.platform || !uaData.platformVersion || !uaData.fullVersionList) return getViaUa();
+
 			let osVersion = 'v' + uaData.platformVersion;
 
-			if (uaData.platform === 'Windows' && uaData.platformVersion != null) {
+			if (uaData.platform === 'Windows') {
 				// https://learn.microsoft.com/ja-jp/microsoft-edge/web-platform/how-to-detect-win11
 				const majorPlatformVersion = parseInt(uaData.platformVersion.split('.')[0]);
 				if (majorPlatformVersion >= 13) {
@@ -39,7 +59,7 @@ export async function getUserEnvironment(): Promise<UserEnvironment> {
 				}
 			}
 
-			const browserData = uaData.fullVersionList.find((item: any) => !/^\s*not.+a.+brand\s*$/i.test(item.brand));
+			const browserData = uaData.fullVersionList.find(item => !/^\s*not.+a.+brand\s*$/i.test(item.brand));
 			return {
 				os: `${uaData.platform} ${osVersion}`,
 				browser: browserData ? `${browserData.brand} v${browserData.version}` : 'Unknown',

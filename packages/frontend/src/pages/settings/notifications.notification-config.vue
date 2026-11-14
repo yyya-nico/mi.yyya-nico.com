@@ -15,31 +15,29 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts">
+import { computed, watch } from 'vue';
+import type { NotificationConfig } from '@/utility/notification-config.js';
+export type { NotificationConfig } from '@/utility/notification-config.js';
+
 const notificationConfigTypes = [
 	'all',
 	'following',
 	'follower',
 	'mutualFollow',
 	'followingOrFollower',
-	'never'
-] as const;
-
-export type NotificationConfig = {
-	type: typeof notificationConfigTypes[number];
-};
+	'never',
+] as const satisfies readonly NotificationConfig['type'][];
 </script>
 
 <script lang="ts" setup>
-import * as Misskey from 'misskey-js';
-import { ref, computed } from 'vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkButton from '@/components/MkButton.vue';
 import { useMkSelect } from '@/composables/use-mkselect.js';
 import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
-	value: NotificationConfig | { type: 'list'; userListId: string };
-		configurableTypes?: NotificationConfig['type'][]; // If not specified, all types are configurable
+	value: NotificationConfig;
+	configurableTypes?: NotificationConfig['type'][]; // If not specified, all types are configurable
 }>();
 
 const emit = defineEmits<{
@@ -63,8 +61,11 @@ const {
 		label: notificationConfigTypesI18nMap[t],
 		value: t,
 	}))),
-	initialValue: props.value.type === 'list' ? 'never' : props.value.type,
 });
+
+watch(() => props.value.type, value => {
+	type.value = value;
+}, { immediate: true });
 
 function save() {
 	emit('update', { type: type.value });

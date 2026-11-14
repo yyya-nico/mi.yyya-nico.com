@@ -17,18 +17,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #label>{{ i18n.ts._notification._types[type] }}</template>
 					<template #suffix>
 						{{
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'never' ? i18n.ts.none :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'following' ? i18n.ts.following :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'follower' ? i18n.ts.followers :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'list' ? i18n.ts.userList :
+							receiveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'never' ? i18n.ts.none :
+							receiveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'following' ? i18n.ts.following :
+							receiveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'follower' ? i18n.ts.followers :
+							receiveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
+							receiveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
 							i18n.ts.all
 						}}
 					</template>
 
 					<XNotificationConfig
-						:value="$i.notificationRecieveConfig[type] ?? { type: 'all' }"
+						:value="receiveConfig[type] ?? { type: 'all' }"
 						:configurableTypes="(onlyOnOrOffNotificationTypes as string[]).includes(type) ? ['all', 'never'] : undefined"
 						@update="(res) => updateReceiveConfig(type, res)"
 					/>
@@ -88,8 +87,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { useTemplateRef, computed, ref, markRaw } from 'vue';
 import { notificationTypes } from 'misskey-js';
 import * as Misskey from 'misskey-js';
+import { userPage } from '@@/js/user.js';
 import XNotificationConfig from './notifications.notification-config.vue';
-import type { NotificationConfig } from './notifications.notification-config.vue';
+import type { NotificationConfig } from '@/utility/notification-config.js';
+import { normalizeNotificationReceiveConfig } from '@/utility/notification-config.js';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkFolder from '@/components/MkFolder.vue';
@@ -104,10 +105,10 @@ import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowB
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 import { Paginator } from '@/utility/paginator.js';
 import MkPagination from '@/components/MkPagination.vue';
-import { userPage } from '@@/js/user.js';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 
 const $i = ensureSignin();
+const receiveConfig = computed(() => normalizeNotificationReceiveConfig($i.notificationRecieveConfig));
 
 async function showNotifyMenu(user: Misskey.entities.UserDetailed, ev: PointerEvent) {
 	os.popupMenu([{
@@ -148,7 +149,7 @@ async function readAllNotifications() {
 async function updateReceiveConfig(type: typeof notificationTypes[number], value: NotificationConfig) {
 	await os.apiWithDialog('i/update', {
 		notificationRecieveConfig: {
-			...$i.notificationRecieveConfig,
+			...receiveConfig.value,
 			[type]: value,
 		},
 	}).then(i => {
