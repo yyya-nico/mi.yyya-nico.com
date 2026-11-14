@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span v-if="visibility === 'public'"><i class="ti ti-world"></i></span>
 					<span v-if="visibility === 'home'"><i class="ti ti-home"></i></span>
 					<span v-if="visibility === 'followers'"><i class="ti ti-lock"></i></span>
-					<span v-if="visibility === 'specified'"><i class="ti ti-mail"></i></span>
+					<span v-if="visibility === 'specified'"><i class="ti ti-lock"></i></span>
 					<span :class="$style.headerRightButtonText">{{ i18n.ts._visibility[visibility] }}</span>
 				</button>
 				<button v-else class="_button" :class="[$style.headerRightItem, $style.visibility]" disabled>
@@ -50,19 +50,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkNoteSimple v-if="replyTargetNote" :class="$style.targetNote" :note="replyTargetNote"/>
 	<MkNoteSimple v-if="renoteTargetNote" :class="$style.targetNote" :note="renoteTargetNote"/>
 	<div v-if="quoteId" :class="$style.withQuote"><i class="ti ti-quote"></i> {{ i18n.ts.quoteAttached }}<button @click="quoteId = null; renoteTargetNote = null;"><i class="ti ti-x"></i></button></div>
-	<div v-if="visibility === 'specified'" :class="$style.toSpecified">
-		<span style="margin-right: 8px;">{{ i18n.ts.recipient }}</span>
-		<div :class="$style.visibleUsers">
-			<span v-for="u in visibleUsers" :key="u.id" :class="$style.visibleUser">
-				<MkAcct :user="u"/>
-				<button class="_button" style="padding: 4px 8px;" @click="removeVisibleUser(u.id)"><i class="ti ti-x"></i></button>
-			</span>
-			<button class="_buttonPrimary" style="padding: 4px; border-radius: 8px;" @click="addVisibleUser"><i class="ti ti-plus ti-fw"></i></button>
-		</div>
-	</div>
 	<MkInfo v-if="!store.r.tips.value.postForm" :class="$style.showHowToUse" closable @close="closeTip('postForm')">
 		<button class="_textButton" @click="showTour">{{ i18n.ts._postForm.showHowToUse }}</button>
 	</MkInfo>
+	<MkInfo v-if="legacySpecifiedDraft && visibility === 'specified'" warn :class="$style.showHowToUse">{{ i18n.ts._postForm.legacySpecifiedDraftConverted }}</MkInfo>
 	<MkInfo v-if="scheduledAt != null" :class="$style.scheduledAt">
 		<I18n :src="i18n.ts.scheduleToPostOnX" tag="span">
 			<template #x>
@@ -70,7 +61,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</I18n> - <button class="_textButton" @click="cancelSchedule()">{{ i18n.ts.cancel }}</button>
 	</MkInfo>
-	<MkInfo v-if="hasNotSpecifiedMentions" warn :class="$style.hasNotSpecifiedMentions">{{ i18n.ts.notSpecifiedMentionWarning }} - <button class="_textButton" @click="addMissingMention()">{{ i18n.ts.add }}</button></MkInfo>
 	<div v-show="useCw" :class="$style.cwOuter">
 		<input ref="cwInputEl" v-model="cw" :class="$style.cw" :placeholder="i18n.ts.annotation" @keydown="onKeydown" @keyup="onKeyup" @compositionend="onCompositionEnd">
 		<div v-if="maxCwTextLength - cwTextLength < 20" :class="['_acrylic', $style.cwTextCount, { [$style.cwTextOver]: cwTextLength > maxCwTextLength }]">{{ maxCwTextLength - cwTextLength }}</div>
@@ -167,7 +157,6 @@ const props = withDefaults(defineProps<PostFormProps & {
 	freezeAfterPosted?: boolean;
 	mock?: boolean;
 }>(), {
-	initialVisibleUsers: () => [],
 	autofocus: true,
 	mock: false,
 	initialLocalOnly: undefined,
@@ -205,16 +194,13 @@ const showAddMfmFunction = ref(prefer.s.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => prefer.commit('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
 const localOnly = ref(props.initialLocalOnly ?? (prefer.s.rememberNoteVisibility ? store.s.localOnly : prefer.s.defaultNoteLocalOnly));
-const visibility = ref(props.initialVisibility ?? (prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility));
-const visibleUsers = ref<Misskey.entities.UserLite[]>([]);
-if (props.initialVisibleUsers) {
-	props.initialVisibleUsers.forEach(u => pushVisibleUser(u));
-}
+const initialVisibility = props.initialVisibility ?? (prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility);
+const visibility = ref<(typeof Misskey.noteVisibilities)[number]>(initialVisibility === 'followers' ? 'specified' : initialVisibility);
 const reactionAcceptance = ref(store.s.reactionAcceptance);
 const scheduledAt = ref<number | null>(null);
 const draghover = ref(false);
 const quoteId = ref<string | null>(null);
-const hasNotSpecifiedMentions = ref(false);
+const legacySpecifiedDraft = ref(false);
 const recentHashtags = ref(JSON.parse(miLocalStorage.getItem('hashtags') ?? '[]'));
 const imeText = ref('');
 const showingOptions = ref(false);
@@ -336,20 +322,6 @@ const canSaveAsServerDraft = computed((): boolean => {
 const withHashtags = store.model('postFormWithHashtags');
 const hashtags = store.model('postFormHashtags');
 
-watch(text, () => {
-	checkMissingMention();
-}, { immediate: true });
-
-watch(visibility, () => {
-	checkMissingMention();
-}, { immediate: true });
-
-watch(visibleUsers, () => {
-	checkMissingMention();
-}, {
-	deep: true,
-});
-
 if (props.mention) {
 	text.value = props.mention.host ? `@${props.mention.username}@${toASCII(props.mention.host)}` : `@${props.mention.username}`;
 	text.value += ' ';
@@ -391,32 +363,8 @@ if (targetChannel.value) {
 
 // 公開以外へのリプライ時は元の公開範囲を引き継ぐ
 if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTargetNote.value.visibility)) {
-	if (replyTargetNote.value.visibility === 'home' && visibility.value === 'followers') {
-		visibility.value = 'followers';
-	} else if (['home', 'followers'].includes(replyTargetNote.value.visibility) && visibility.value === 'specified') {
-		visibility.value = 'specified';
-	} else {
-		visibility.value = replyTargetNote.value.visibility;
-	}
-
-	if (visibility.value === 'specified') {
-		if (replyTargetNote.value.visibleUserIds) {
-			misskeyApi('users/show', {
-				userIds: replyTargetNote.value.visibleUserIds.filter(uid => uid !== $i.id && uid !== replyTargetNote.value?.userId),
-			}).then(users => {
-				users.forEach(u => pushVisibleUser(u));
-			});
-		}
-
-		if (replyTargetNote.value.userId !== $i.id) {
-			pushVisibleUser(replyTargetNote.value.user);
-		}
-	}
-}
-
-if (props.specified) {
-	visibility.value = 'specified';
-	pushVisibleUser(props.specified);
+	visibility.value = visibility.value === 'specified' || replyTargetNote.value.visibility === 'followers'
+		? 'specified' : replyTargetNote.value.visibility;
 }
 
 // keep cw when reply
@@ -436,32 +384,6 @@ function watchForDraft() {
 	watch(quoteId, () => saveDraft());
 	watch(reactionAcceptance, () => saveDraft());
 	watch(scheduledAt, () => saveDraft());
-}
-
-function checkMissingMention() {
-	if (visibility.value === 'specified') {
-		const ast = mfm.parse(text.value);
-
-		for (const x of extractMentions(ast)) {
-			if (!visibleUsers.value.some(u => (u.username === x.username) && ((u.host === x.host) || (x.host === host && u.host == null)))) {
-				hasNotSpecifiedMentions.value = true;
-				return;
-			}
-		}
-	}
-	hasNotSpecifiedMentions.value = false;
-}
-
-function addMissingMention() {
-	const ast = mfm.parse(text.value);
-
-	for (const x of extractMentions(ast)) {
-		if (!visibleUsers.value.some(u => (u.username === x.username) && (u.host === x.host))) {
-			misskeyApi('users/show', { username: x.username, host: x.host }).then(user => {
-				pushVisibleUser(user);
-			});
-		}
-	}
 }
 
 function togglePoll() {
@@ -690,26 +612,6 @@ function showOtherSettings() {
 }
 //#endregion
 
-function pushVisibleUser(user: Misskey.entities.UserLite) {
-	if (!visibleUsers.value.some(u => u.username === user.username && u.host === user.host)) {
-		visibleUsers.value.push(user);
-	}
-}
-
-function addVisibleUser() {
-	os.selectUser().then(user => {
-		pushVisibleUser(user);
-
-		if (!text.value.toLowerCase().includes(`@${user.username.toLowerCase()}`)) {
-			text.value = `@${Misskey.acct.toString(user)} ${text.value}`;
-		}
-	});
-}
-
-function removeVisibleUser(id: string) {
-	visibleUsers.value = visibleUsers.value.filter(u => u.id !== id);
-}
-
 function clear() {
 	text.value = '';
 	cw.value = null;
@@ -893,7 +795,6 @@ function saveDraft() {
 			localOnly: localOnly.value,
 			files: files.value,
 			poll: poll.value,
-			...( visibleUsers.value.length > 0 ? { visibleUserIds: visibleUsers.value.map(x => x.id) } : {}),
 			quoteId: quoteId.value,
 			reactionAcceptance: reactionAcceptance.value,
 			scheduledAt: scheduledAt.value,
@@ -923,7 +824,7 @@ async function saveServerDraft(options: {
 		hashtag: hashtags.value,
 		fileIds: files.value.map(f => f.id),
 		poll: poll.value,
-		visibleUserIds: visibleUsers.value.map(x => x.id),
+		visibleUserIds: [],
 		renoteId: renoteTargetNote.value ? renoteTargetNote.value.id : quoteId.value ? quoteId.value : null,
 		replyId: replyTargetNote.value ? replyTargetNote.value.id : null,
 		channelId: null,
@@ -1027,7 +928,7 @@ async function post(ev?: PointerEvent) {
 		cw: useCw.value ? cw.value ?? '' : null,
 		localOnly: visibility.value === 'specified' ? false : localOnly.value,
 		visibility: visibility.value,
-		visibleUserIds: visibility.value === 'specified' ? visibleUsers.value.map(u => u.id) : undefined,
+		visibleUserIds: visibility.value === 'specified' ? [] : undefined,
 		reactionAcceptance: reactionAcceptance.value,
 	};
 
@@ -1260,7 +1161,8 @@ async function openAccountMenu(ev: PointerEvent) {
 				text.value = draft.text ?? '';
 				useCw.value = draft.cw != null;
 				cw.value = draft.cw ?? null;
-				visibility.value = draft.visibility;
+				visibility.value = draft.visibility === 'followers' ? 'specified' : draft.visibility;
+				legacySpecifiedDraft.value = draft.visibility === 'specified' && (draft.visibleUserIds?.length ?? 0) > 0;
 				localOnly.value = draft.localOnly ?? false;
 				files.value = draft.files ?? [];
 				hashtags.value = draft.hashtag ?? '';
@@ -1275,12 +1177,6 @@ async function openAccountMenu(ev: PointerEvent) {
 							expiresAt: draft.poll!.expiresAt ? (new Date(draft.poll!.expiresAt)).getTime() : null,
 							expiredAfter: null,
 						};
-					});
-				}
-				visibleUsers.value = [];
-				if (draft.visibleUserIds != null && draft.visibleUserIds.length > 0) {
-					misskeyApi('users/show', { userIds: draft.visibleUserIds }).then(users => {
-						users.forEach(u => pushVisibleUser(u));
 					});
 				}
 				quoteId.value = draft.renoteId ?? null;
@@ -1408,22 +1304,18 @@ onMounted(() => {
 
 	nextTick(() => {
 		// 書きかけの投稿を復元
-		if (!props.instant && !props.mention && !props.specified && !props.mock) {
+		if (!props.instant && !props.mention && !props.mock) {
 			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value] as StoredDrafts[string] | undefined;
 			if (draft != null) {
 				text.value = draft.data.text;
 				useCw.value = draft.data.useCw;
 				cw.value = draft.data.cw;
-				visibility.value = draft.data.visibility;
+				visibility.value = draft.data.visibility === 'followers' ? 'specified' : draft.data.visibility;
+				legacySpecifiedDraft.value = draft.data.visibility === 'specified' && (draft.data.visibleUserIds?.length ?? 0) > 0;
 				localOnly.value = draft.data.localOnly;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
-				}
-				if (draft.data.visibleUserIds) {
-					misskeyApi('users/show', { userIds: draft.data.visibleUserIds }).then(users => {
-						users.forEach(u => pushVisibleUser(u));
-					});
 				}
 				quoteId.value = draft.data.quoteId;
 				reactionAcceptance.value = draft.data.reactionAcceptance;
@@ -1437,7 +1329,8 @@ onMounted(() => {
 			text.value = init.text ? init.text : '';
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
-			visibility.value = init.visibility;
+			visibility.value = init.visibility === 'followers' ? 'specified' : init.visibility;
+			legacySpecifiedDraft.value = init.visibility === 'specified' && (init.visibleUserIds?.length ?? 0) > 0;
 			localOnly.value = init.localOnly ?? false;
 			files.value = init.files ?? [];
 			if (init.poll) {
@@ -1447,11 +1340,6 @@ onMounted(() => {
 					expiresAt: init.poll.expiresAt ? (new Date(init.poll.expiresAt)).getTime() : null,
 					expiredAfter: null,
 				};
-			}
-			if (init.visibleUserIds) {
-				misskeyApi('users/show', { userIds: init.visibleUserIds }).then(users => {
-					users.forEach(u => pushVisibleUser(u));
-				});
 			}
 			quoteId.value = renoteTargetNote.value ? renoteTargetNote.value.id : null;
 			reactionAcceptance.value = init.reactionAcceptance;
@@ -1657,30 +1545,6 @@ html[data-color-scheme=light] .preview {
 .withQuote {
 	margin: 0 0 8px 0;
 	color: var(--MI_THEME-accent);
-}
-
-.toSpecified {
-	padding: 6px 24px;
-	margin-bottom: 8px;
-	overflow: auto;
-	white-space: nowrap;
-}
-
-.visibleUsers {
-	display: inline;
-	top: -1px;
-	font-size: 14px;
-}
-
-.visibleUser {
-	margin-right: 14px;
-	padding: 8px 0 8px 8px;
-	border-radius: 8px;
-	background: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
-}
-
-.hasNotSpecifiedMentions {
-	margin: 0 20px 16px 20px;
 }
 
 .scheduledAt {

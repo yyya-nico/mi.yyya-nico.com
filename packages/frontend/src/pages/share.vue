@@ -16,7 +16,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:initialLocalOnly="localOnly"
 			:reply="reply"
 			:renote="renote"
-			:initialVisibleUsers="visibleUsers"
 			class="_panel"
 			@posted="onPosted"
 		/>
@@ -55,7 +54,6 @@ const renote = ref<Misskey.entities.Note | undefined>();
 const visibility = ref(Misskey.noteVisibilities.includes(visibilityQuery) ? visibilityQuery : undefined);
 const localOnly = ref(localOnlyQuery === '0' ? false : localOnlyQuery === '1' ? true : undefined);
 const files = ref([] as Misskey.entities.DriveFile[]);
-const visibleUsers = ref([] as Misskey.entities.UserDetailed[]);
 
 async function init() {
 	let noteText = '';
@@ -103,25 +101,6 @@ async function init() {
 		}
 	}
 	initialText.value = noteText.trim();
-
-	if (visibility.value === 'specified') {
-		const visibleUserIds = urlParams.get('visibleUserIds');
-		const visibleAccts = urlParams.get('visibleAccts');
-		await Promise.all(
-			[
-				...(visibleUserIds ? visibleUserIds.split(',').map(userId => ({ userId })) : []),
-				...(visibleAccts ? visibleAccts.split(',').map(Misskey.acct.parse) : []),
-			]
-			// @ts-expect-error payloadの引数側の型が正常に解決されない
-				.map(q => misskeyApi('users/show', q)
-					.then(user => {
-						visibleUsers.value.push(user);
-					}, () => {
-						console.error(`Invalid user query: ${JSON.stringify(q)}`);
-					}),
-				),
-		);
-	}
 
 	try {
 		//#region Reply

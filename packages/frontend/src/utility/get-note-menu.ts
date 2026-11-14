@@ -543,7 +543,7 @@ type Visibility = (typeof Misskey.noteVisibilities)[number];
 
 function smallerVisibility(a: Visibility, b: Visibility): Visibility {
 	if (a === 'specified' || b === 'specified') return 'specified';
-	if (a === 'followers' || b === 'followers') return 'followers';
+	if (a === 'followers' || b === 'followers') return 'specified';
 	if (a === 'home' || b === 'home') return 'home';
 	// if (a === 'public' || b === 'public')
 	return 'public';

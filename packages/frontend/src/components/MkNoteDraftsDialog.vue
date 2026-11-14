@@ -103,11 +103,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</div>
 								<div :class="$style.draftFooter">
 									<div :class="$style.draftVisibility">
-										<span :title="i18n.ts._visibility[draft.visibility]">
+										<span :title="draft.visibility === 'specified' && draft.visibleUserIds?.length ? i18n.ts._visibility.legacySpecified : i18n.ts._visibility[draft.visibility]">
 											<i v-if="draft.visibility === 'public'" class="ti ti-world"></i>
 											<i v-else-if="draft.visibility === 'home'" class="ti ti-home"></i>
 											<i v-else-if="draft.visibility === 'followers'" class="ti ti-lock"></i>
-											<i v-else-if="draft.visibility === 'specified'" class="ti ti-mail"></i>
+											<i v-else-if="draft.visibility === 'specified'" :class="draft.visibleUserIds?.length ? 'ti ti-mail' : 'ti ti-lock'"></i>
 										</span>
 										<span v-if="draft.localOnly" :title="i18n.ts._visibility['disableFederation']"><i class="ti ti-rocket-off"></i></span>
 									</div>

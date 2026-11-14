@@ -13,13 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div>{{ i18n.ts._initialTutorial._postNote._visibility.description }}</div>
 			<div><i class="ti ti-world"></i> <b>{{ i18n.ts._visibility.public }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.public }}</div>
 			<div><i class="ti ti-home"></i> <b>{{ i18n.ts._visibility.home }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.home }}</div>
-			<div><i class="ti ti-lock"></i> <b>{{ i18n.ts._visibility.followers }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.followers }}</div>
-			<div class="_gaps_s">
-				<div><i class="ti ti-mail"></i> <b>{{ i18n.ts._visibility.specified }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.direct }}</div>
-				<MkInfo :warn="true">
-					<b>{{ i18n.ts._initialTutorial._postNote._visibility.doNotSendConfidencialOnDirect1 }}</b> {{ i18n.ts._initialTutorial._postNote._visibility.doNotSendConfidencialOnDirect2 }}
-				</MkInfo>
-			</div>
+			<div><i class="ti ti-lock"></i> <b>{{ i18n.ts._visibility.specified }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.private }}</div>
 			<div><i class="ti ti-rocket-off"></i> <b>{{ i18n.ts._visibility.disableFederation }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.localOnly }}</div>
 		</div>
 	</MkFormSection>
@@ -41,7 +35,6 @@ import { i18n } from '@/i18n.js';
 import MkNote from '@/components/MkNote.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
 import MkFormSection from '@/components/form/section.vue';
-import MkInfo from '@/components/MkInfo.vue';
 
 const exampleCWNote = reactive<Misskey.entities.Note>({
 	id: '0000000000',

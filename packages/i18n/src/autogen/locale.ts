@@ -3133,7 +3133,7 @@ export interface Locale extends ILocale {
      */
     "noCrawleDescription": string;
     /**
-     * フォローを承認制にしても、ノートの公開範囲を「フォロワー」にしない限り、誰でもあなたのノートを見ることができます。
+     * フォローを承認制にしても、「公開」や「ホーム」のノートは他のユーザーが見ることができます。
      */
     "lockedAccountInfo": string;
     /**
@@ -6858,6 +6858,10 @@ export interface Locale extends ILocale {
                  */
                 "direct": string;
                 /**
+                 * 自分だけが閲覧できます。返信は返信先の投稿者にも届きます。
+                 */
+                "private": string;
+                /**
                  * 機密情報は送信する際は注意してください。
                  */
                 "doNotSendConfidencialOnDirect1": string;
@@ -10336,7 +10340,7 @@ export interface Locale extends ILocale {
     };
     "_visibility": {
         /**
-         * パブリック
+         * 公開
          */
         "public": string;
         /**
@@ -10360,13 +10364,17 @@ export interface Locale extends ILocale {
          */
         "followersDescription": string;
         /**
-         * 指名
+         * 非公開
          */
         "specified": string;
         /**
-         * 指定したユーザーのみに公開
+         * 自分だけが閲覧できます（返信は返信先の投稿者にも届きます）
          */
         "specifiedDescription": string;
+        /**
+         * 限定公開
+         */
+        "legacySpecified": string;
         /**
          * 連合なし
          */
@@ -10377,6 +10385,10 @@ export interface Locale extends ILocale {
         "disableFederationDescription": string;
     };
     "_postForm": {
+        /**
+         * この下書きは宛先付きの限定公開でした。非公開で投稿すると、元の宛先には届きません。
+         */
+        "legacySpecifiedDraftConverted": string;
         /**
          * アップロードされていないファイルがありますが、破棄してフォームを閉じますか？
          */

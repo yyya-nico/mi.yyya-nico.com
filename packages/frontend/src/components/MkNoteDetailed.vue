@@ -35,10 +35,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<i v-if="isMyRenote" class="ti ti-dots" style="margin-right: 4px;"></i>
 				<MkTime :time="note.createdAt"/>
 			</button>
-			<span v-if="note.visibility !== 'public'" style="margin-left: 0.5em;" :title="i18n.ts._visibility[note.visibility]">
+			<span v-if="note.visibility !== 'public'" style="margin-left: 0.5em;" :title="note.visibility === 'specified' && note.visibleUserIds?.length ? i18n.ts._visibility.legacySpecified : i18n.ts._visibility[note.visibility]">
 				<i v-if="note.visibility === 'home'" class="ti ti-home"></i>
 				<i v-else-if="note.visibility === 'followers'" class="ti ti-lock"></i>
-				<i v-else-if="note.visibility === 'specified'" ref="specified" class="ti ti-mail"></i>
+				<i v-else-if="note.visibility === 'specified'" ref="specified" :class="note.visibleUserIds?.length ? 'ti ti-mail' : 'ti ti-lock'"></i>
 			</span>
 			<span v-if="note.localOnly" style="margin-left: 0.5em;" :title="i18n.ts._visibility['disableFederation']"><i class="ti ti-rocket-off"></i></span>
 		</div>
@@ -57,10 +57,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkA>
 						<span v-if="appearNote.user.isBot" :class="$style.isBot">bot</span>
 						<div :class="$style.noteHeaderInfo">
-							<span v-if="appearNote.visibility !== 'public'" style="margin-left: 0.5em;" :title="i18n.ts._visibility[appearNote.visibility]">
+							<span v-if="appearNote.visibility !== 'public'" style="margin-left: 0.5em;" :title="appearNote.visibility === 'specified' && appearNote.visibleUserIds?.length ? i18n.ts._visibility.legacySpecified : i18n.ts._visibility[appearNote.visibility]">
 								<i v-if="appearNote.visibility === 'home'" class="ti ti-home"></i>
 								<i v-else-if="appearNote.visibility === 'followers'" class="ti ti-lock"></i>
-								<i v-else-if="appearNote.visibility === 'specified'" ref="specified" class="ti ti-mail"></i>
+								<i v-else-if="appearNote.visibility === 'specified'" ref="specified" :class="appearNote.visibleUserIds?.length ? 'ti ti-mail' : 'ti ti-lock'"></i>
 							</span>
 							<span v-if="appearNote.localOnly" style="margin-left: 0.5em;" :title="i18n.ts._visibility['disableFederation']"><i class="ti ti-rocket-off"></i></span>
 						</div>
@@ -140,8 +140,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<i v-if="appearNote.visibility === 'public'" class="ti ti-world"></i>
 						<i v-else-if="appearNote.visibility === 'home'" class="ti ti-home"></i>
 						<i v-else-if="appearNote.visibility === 'followers'" class="ti ti-lock"></i>
-						<i v-else-if="appearNote.visibility === 'specified'" ref="specified" class="ti ti-mail"></i>
-						<span style="margin-left: 0.3em;">{{ i18n.ts._visibility[appearNote.visibility] }}</span>
+						<i v-else-if="appearNote.visibility === 'specified'" ref="specified" :class="appearNote.visibleUserIds?.length ? 'ti ti-mail' : 'ti ti-lock'"></i>
+						<span style="margin-left: 0.3em;">{{ appearNote.visibility === 'specified' && appearNote.visibleUserIds?.length ? i18n.ts._visibility.legacySpecified : i18n.ts._visibility[appearNote.visibility] }}</span>
 					</span>
 				</div>
 				<MkReactionsViewer

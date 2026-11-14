@@ -351,7 +351,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<template #label><SearchLabel>{{ i18n.ts.defaultNoteVisibility }}</SearchLabel></template>
 									<template v-if="defaultNoteVisibility === 'public'" #suffix>{{ i18n.ts._visibility.public }}</template>
 									<template v-else-if="defaultNoteVisibility === 'home'" #suffix>{{ i18n.ts._visibility.home }}</template>
-									<template v-else-if="defaultNoteVisibility === 'followers'" #suffix>{{ i18n.ts._visibility.followers }}</template>
 									<template v-else-if="defaultNoteVisibility === 'specified'" #suffix>{{ i18n.ts._visibility.specified }}</template>
 
 									<div class="_gaps_m">
@@ -361,7 +360,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 												:items="[
 													{ label: i18n.ts._visibility.public, value: 'public' },
 													{ label: i18n.ts._visibility.home, value: 'home' },
-													{ label: i18n.ts._visibility.followers, value: 'followers' },
 													{ label: i18n.ts._visibility.specified, value: 'specified' },
 												]"
 											>
@@ -875,6 +873,7 @@ const alwaysConfirmFollow = prefer.model('alwaysConfirmFollow');
 const confirmWhenRevealingSensitiveMedia = prefer.model('confirmWhenRevealingSensitiveMedia');
 const confirmOnReact = prefer.model('confirmOnReact');
 const defaultNoteVisibility = prefer.model('defaultNoteVisibility');
+if (defaultNoteVisibility.value === 'followers') defaultNoteVisibility.value = 'specified';
 const defaultNoteLocalOnly = prefer.model('defaultNoteLocalOnly');
 const rememberNoteVisibility = prefer.model('rememberNoteVisibility');
 const notificationPosition = prefer.model('notificationPosition');
