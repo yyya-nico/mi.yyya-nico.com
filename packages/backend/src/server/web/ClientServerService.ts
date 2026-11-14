@@ -40,7 +40,6 @@ import { bindThis } from '@/decorators.js';
 import { FlashEntityService } from '@/core/entities/FlashEntityService.js';
 import { ReversiGameEntityService } from '@/core/entities/ReversiGameEntityService.js';
 import { AnnouncementEntityService } from '@/core/entities/AnnouncementEntityService.js';
-import { FeedService } from './FeedService.js';
 import { UrlPreviewService } from './UrlPreviewService.js';
 import { ClientLoggerService } from './ClientLoggerService.js';
 import { HtmlTemplateService } from './HtmlTemplateService.js';
@@ -124,7 +123,6 @@ export class ClientServerService {
 		private reversiGameEntityService: ReversiGameEntityService,
 		private announcementEntityService: AnnouncementEntityService,
 		private urlPreviewService: UrlPreviewService,
-		private feedService: FeedService,
 		private htmlTemplateService: HtmlTemplateService,
 		private clientLoggerService: ClientLoggerService,
 	) {
@@ -451,72 +449,14 @@ export class ClientServerService {
 		// URL preview endpoint
 		fastify.get<{ Querystring: { url: string; lang: string; } }>('/url', (request, reply) => this.urlPreviewService.handle(request, reply));
 
-		const getFeed = async (acct: string) => {
-			const { username, host } = Acct.parse(acct);
-			const user = await this.usersRepository.findOneBy({
-				usernameLower: username.toLowerCase(),
-				host: host ?? IsNull(),
-				isSuspended: false,
-				requireSigninToViewContents: false,
-			});
-
-			if (user == null) return null;
-
-			if (this.meta.ugcVisibilityForVisitor === 'none' || (this.meta.ugcVisibilityForVisitor === 'local' && user.host != null)) {
-				return null;
-			}
-
-			return await this.feedService.packFeed(user);
-		};
-
-		// Atom
-		fastify.get<{ Params: { user?: string; } }>('/@:user.atom', async (request, reply) => {
-			if (request.params.user == null) return await renderBase(reply);
-
-			const feed = await getFeed(request.params.user);
-
-			if (feed) {
-				reply.header('Content-Type', 'application/atom+xml; charset=utf-8');
-				return feed.atom1();
-			} else {
-				reply.code(404);
-				return;
-			}
-		});
-
-		// RSS
-		fastify.get<{ Params: { user?: string; } }>('/@:user.rss', async (request, reply) => {
-			if (request.params.user == null) return await renderBase(reply);
-
-			const feed = await getFeed(request.params.user);
-
-			if (feed) {
-				reply.header('Content-Type', 'application/rss+xml; charset=utf-8');
-				return feed.rss2();
-			} else {
-				reply.code(404);
-				return;
-			}
-		});
-
-		// JSON
-		fastify.get<{ Params: { user?: string; } }>('/@:user.json', async (request, reply) => {
-			if (request.params.user == null) return await renderBase(reply);
-
-			const feed = await getFeed(request.params.user);
-
-			if (feed) {
-				reply.header('Content-Type', 'application/json; charset=utf-8');
-				return feed.json1();
-			} else {
-				reply.code(404);
-				return;
-			}
-		});
-
 		//#region SSR
 		// User
 		fastify.get<{ Params: { user: string; sub?: string; } }>('/@:user/:sub?', async (request, reply) => {
+			if (/\.(rss|atom|json)$/.test(request.params.user)) {
+				reply.code(404);
+				return;
+			}
+
 			const { username, host } = Acct.parse(request.params.user);
 			const user = await this.usersRepository.findOneBy({
 				usernameLower: username.toLowerCase(),
@@ -622,65 +562,8 @@ export class ClientServerService {
 		});
 
 		// Page
-		fastify.get<{ Params: { user: string; page: string; } }>('/@:user/pages/:page', async (request, reply) => {
-			const { username, host } = Acct.parse(request.params.user);
-			const user = await this.usersRepository.findOneBy({
-				usernameLower: username.toLowerCase(),
-				host: host ?? IsNull(),
-			});
-
-			if (user == null) return;
-
-			const page = await this.pagesRepository.findOneBy({
-				name: request.params.page,
-				userId: user.id,
-			});
-
-			if (page) {
-				const _page = await this.pageEntityService.pack(page);
-				const profile = await this.userProfilesRepository.findOneByOrFail({ userId: page.userId });
-				if (['public'].includes(page.visibility)) {
-					reply.header('Cache-Control', 'public, max-age=15');
-				} else {
-					reply.header('Cache-Control', 'private, max-age=0, must-revalidate');
-				}
-				if (profile.preventAiLearning) {
-					reply.header('X-Robots-Tag', 'noimageai');
-					reply.header('X-Robots-Tag', 'noai');
-				}
-				return await HtmlTemplateService.replyHtml(reply, PagePage({
-					page: _page,
-					profile,
-					...(await this.htmlTemplateService.getCommonData()),
-				}));
-			} else {
-				return await renderBase(reply);
-			}
-		});
 
 		// Flash
-		fastify.get<{ Params: { id: string; } }>('/play/:id', async (request, reply) => {
-			const flash = await this.flashsRepository.findOneBy({
-				id: request.params.id,
-			});
-
-			if (flash) {
-				const _flash = await this.flashEntityService.pack(flash);
-				const profile = await this.userProfilesRepository.findOneByOrFail({ userId: flash.userId });
-				reply.header('Cache-Control', 'public, max-age=15');
-				if (profile.preventAiLearning) {
-					reply.header('X-Robots-Tag', 'noimageai');
-					reply.header('X-Robots-Tag', 'noai');
-				}
-				return await HtmlTemplateService.replyHtml(reply, FlashPage({
-					flash: _flash,
-					profile,
-					...(await this.htmlTemplateService.getCommonData()),
-				}));
-			} else {
-				return await renderBase(reply);
-			}
-		});
 
 		// Clip
 		fastify.get<{ Params: { clip: string; } }>('/clips/:clip', async (request, reply) => {
@@ -710,81 +593,12 @@ export class ClientServerService {
 		});
 
 		// Gallery post
-		fastify.get<{ Params: { post: string; } }>('/gallery/:post', async (request, reply) => {
-			const post = await this.galleryPostsRepository.findOneBy({ id: request.params.post });
-
-			if (post) {
-				const _post = await this.galleryPostEntityService.pack(post);
-				const profile = await this.userProfilesRepository.findOneByOrFail({ userId: post.userId });
-				reply.header('Cache-Control', 'public, max-age=15');
-				if (profile.preventAiLearning) {
-					reply.header('X-Robots-Tag', 'noimageai');
-					reply.header('X-Robots-Tag', 'noai');
-				}
-				return await HtmlTemplateService.replyHtml(reply, GalleryPostPage({
-					galleryPost: _post,
-					profile,
-					...(await this.htmlTemplateService.getCommonData()),
-				}));
-			} else {
-				return await renderBase(reply);
-			}
-		});
 
 		// Channel
-		fastify.get<{ Params: { channel: string; } }>('/channels/:channel', async (request, reply) => {
-			const channel = await this.channelsRepository.findOneBy({
-				id: request.params.channel,
-			});
-
-			if (channel) {
-				const _channel = await this.channelEntityService.pack(channel);
-				reply.header('Cache-Control', 'public, max-age=15');
-				return await HtmlTemplateService.replyHtml(reply, ChannelPage({
-					channel: _channel,
-					...(await this.htmlTemplateService.getCommonData()),
-				}));
-			} else {
-				return await renderBase(reply);
-			}
-		});
 
 		// Reversi game
-		fastify.get<{ Params: { game: string; } }>('/reversi/g/:game', async (request, reply) => {
-			const game = await this.reversiGamesRepository.findOneBy({
-				id: request.params.game,
-			});
-
-			if (game) {
-				const _game = await this.reversiGameEntityService.packDetail(game);
-				reply.header('Cache-Control', 'public, max-age=3600');
-				return await HtmlTemplateService.replyHtml(reply, ReversiGamePage({
-					reversiGame: _game,
-					...(await this.htmlTemplateService.getCommonData()),
-				}));
-			} else {
-				return await renderBase(reply);
-			}
-		});
 
 		// 個別お知らせページ
-		fastify.get<{ Params: { announcementId: string; } }>('/announcements/:announcementId', async (request, reply) => {
-			const announcement = await this.announcementsRepository.findOneBy({
-				id: request.params.announcementId,
-				userId: IsNull(),
-			});
-
-			if (announcement) {
-				const _announcement = await this.announcementEntityService.pack(announcement);
-				reply.header('Cache-Control', 'public, max-age=3600');
-				return await HtmlTemplateService.replyHtml(reply, AnnouncementPage({
-					announcement: _announcement,
-					...(await this.htmlTemplateService.getCommonData()),
-				}));
-			} else {
-				return await renderBase(reply);
-			}
-		});
 		//#endregion
 
 		//#region noindex pages

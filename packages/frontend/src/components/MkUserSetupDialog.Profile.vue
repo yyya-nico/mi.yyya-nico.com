@@ -70,22 +70,7 @@ async function setAvatar(ev: PointerEvent) {
 	const files = await os.chooseFileFromPc({ multiple: false });
 	const file = files[0];
 
-	let originalOrCropped = file;
-
-	const { canceled } = await os.confirm({
-		type: 'question',
-		text: i18n.ts.cropImageAsk,
-		okText: i18n.ts.cropYes,
-		cancelText: i18n.ts.cropNo,
-	});
-
-	if (!canceled) {
-		originalOrCropped = await os.cropImageFile(file, {
-			aspectRatio: 1,
-		});
-	}
-
-	const driveFile = (await os.launchUploader([originalOrCropped], { multiple: false }))[0];
+	const driveFile = (await os.launchUploader([file], { multiple: false }))[0];
 
 	const i = await os.apiWithDialog('i/update', {
 		avatarId: driveFile.id,

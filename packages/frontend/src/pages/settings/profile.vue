@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<SearchMarker :keywords="['avatar', 'icon', 'change']">
 						<MkButton primary rounded @click="changeAvatar"><SearchLabel>{{ i18n.ts._profile.changeAvatar }}</SearchLabel></MkButton>
 					</SearchMarker>
-					<MkButton primary rounded type="routerLink" to="/settings/avatar-decoration">{{ i18n.ts.decorate }} <i class="ti ti-sparkles"></i></MkButton>
+
 				</div>
 			</div>
 		</div>
@@ -151,12 +151,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<hr>
 
-		<SearchMarker :keywords="['qrcode']">
-			<FormLink to="/qr">
-				<template #icon><i class="ti ti-qrcode"></i></template>
-				<SearchLabel>{{ i18n.ts.qr }}</SearchLabel>
-			</FormLink>
-		</SearchMarker>
 	</div>
 </SearchMarker>
 </template>
@@ -303,22 +297,7 @@ function changeAvatar(ev: PointerEvent) {
 			const files = await os.chooseFileFromPc({ multiple: false });
 			const file = files[0];
 
-			let originalOrCropped = file;
-
-			const { canceled } = await os.confirm({
-				type: 'question',
-				text: i18n.ts.cropImageAsk,
-				okText: i18n.ts.cropYes,
-				cancelText: i18n.ts.cropNo,
-			});
-
-			if (!canceled) {
-				originalOrCropped = await os.cropImageFile(file, {
-					aspectRatio: 1,
-				});
-			}
-
-			const driveFile = (await os.launchUploader([originalOrCropped], { multiple: false }))[0];
+			const driveFile = (await os.launchUploader([file], { multiple: false }))[0];
 			done(driveFile);
 		},
 	}, {
@@ -379,22 +358,7 @@ function changeBanner(ev: PointerEvent) {
 			const files = await os.chooseFileFromPc({ multiple: false });
 			const file = files[0];
 
-			let originalOrCropped = file;
-
-			const { canceled } = await os.confirm({
-				type: 'question',
-				text: i18n.ts.cropImageAsk,
-				okText: i18n.ts.cropYes,
-				cancelText: i18n.ts.cropNo,
-			});
-
-			if (!canceled) {
-				originalOrCropped = await os.cropImageFile(file, {
-					aspectRatio: 2,
-				});
-			}
-
-			const driveFile = (await os.launchUploader([originalOrCropped], { multiple: false }))[0];
+			const driveFile = (await os.launchUploader([file], { multiple: false }))[0];
 			done(driveFile);
 		},
 	}, {

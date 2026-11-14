@@ -414,12 +414,6 @@ export class NoteEntityService implements OnModuleInit {
 			text = `【${note.name}】\n${(note.text ?? '').trim()}\n\n${note.url ?? note.uri}`;
 		}
 
-		const channel = note.channelId
-			? note.channel
-				? note.channel
-				: await this.channelsRepository.findOneBy({ id: note.channelId })
-			: null;
-
 		const reactionEmojiNames = Object.keys(reactions)
 			.filter(x => x.startsWith(':') && x.includes('@') && !x.includes('@.')) // リモートカスタム絵文字のみ
 			.map(x => this.reactionService.decodeReaction(x).reaction.replaceAll(':', ''));
@@ -449,15 +443,8 @@ export class NoteEntityService implements OnModuleInit {
 			files: packedFiles != null ? this.packAttachedFiles(note.fileIds, packedFiles) : this.driveFileEntityService.packManyByIds(note.fileIds),
 			replyId: note.replyId,
 			renoteId: note.renoteId,
-			channelId: note.channelId ?? undefined,
-			channel: channel ? {
-				id: channel.id,
-				name: channel.name,
-				color: channel.color,
-				isSensitive: channel.isSensitive,
-				allowRenoteToExternal: channel.allowRenoteToExternal,
-				userId: channel.userId,
-			} : undefined,
+			channelId: undefined,
+			channel: undefined,
 			mentions: note.mentions.length > 0 ? note.mentions : undefined,
 			hasPoll: note.hasPoll || undefined,
 			uri: note.uri ?? undefined,

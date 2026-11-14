@@ -15,7 +15,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { $i, iAmModerator } from '@/i.js';
 import { notesSearchAvailable, canSearchNonLocalNotes } from '@/utility/check-permissions.js';
-import { antennasCache, rolesCache, userListsCache } from '@/cache.js';
+import { rolesCache } from '@/cache.js';
 import { mainRouter } from '@/router.js';
 import { genEmbedCode } from '@/utility/get-embed-code.js';
 import { prefer } from '@/preferences.js';
@@ -184,14 +184,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: Router 
 		},
 	});
 
-	menuItems.push({
-		icon: 'ti ti-rss',
-		text: i18n.ts.copyRSS,
-		action: () => {
-			copyToClipboard(`${user.host ?? host}/@${user.username}.atom`);
-		},
-	});
-
 	if (user.host != null && user.url != null) {
 		menuItems.push({
 			icon: 'ti ti-external-link',
@@ -212,16 +204,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: Router 
 					genEmbedCode('user-timeline', user.id);
 				},
 			}], // TODO: ユーザーカードの埋め込みなど
-		});
-	}
-
-	if ($i && meId === user.id) {
-		menuItems.push({
-			icon: 'ti ti-qrcode',
-			text: i18n.ts.qr,
-			action: () => {
-				router.push('/qr');
-			},
 		});
 	}
 
@@ -250,65 +232,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: Router 
 			icon: 'ti ti-pencil',
 			text: i18n.ts.editMemo,
 			action: editMemo,
-		}, {
-			type: 'parent',
-			icon: 'ti ti-list',
-			text: i18n.ts.addToList,
-			children: async () => {
-				const lists = await userListsCache.fetch();
-				return lists.map(list => {
-					const isListed = ref(list.userIds?.includes(user.id) ?? false);
-					cleanups.push(watch(isListed, () => {
-						if (isListed.value) {
-							os.apiWithDialog('users/lists/push', {
-								listId: list.id,
-								userId: user.id,
-							}).then(() => {
-								list.userIds?.push(user.id);
-							});
-						} else {
-							os.apiWithDialog('users/lists/pull', {
-								listId: list.id,
-								userId: user.id,
-							}).then(() => {
-								list.userIds?.splice(list.userIds.indexOf(user.id), 1);
-							});
-						}
-					}));
-
-					return {
-						type: 'switch',
-						text: list.name,
-						ref: isListed,
-					};
-				});
-			},
-		}, {
-			type: 'parent',
-			icon: 'ti ti-antenna',
-			text: i18n.ts.addToAntenna,
-			children: async () => {
-				const antennas = await antennasCache.fetch();
-				const canonical = user.host === null ? `@${user.username}` : `@${user.username}@${toUnicode(user.host)}`;
-				return antennas.filter((a) => a.src === 'users').map(antenna => ({
-					text: antenna.name,
-					action: async () => {
-						await os.apiWithDialog('antennas/update', {
-							antennaId: antenna.id,
-							name: antenna.name,
-							keywords: antenna.keywords,
-							excludeKeywords: antenna.excludeKeywords,
-							src: antenna.src,
-							userListId: antenna.userListId,
-							users: [...antenna.users, canonical],
-							caseSensitive: antenna.caseSensitive,
-							withReplies: antenna.withReplies,
-							withFile: antenna.withFile,
-						});
-						antennasCache.delete();
-					},
-				}));
-			},
 		});
 	}
 
@@ -388,15 +311,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: Router 
 				os.post({ specified: user, initialText: `${canonical} ` });
 			},
 		});
-
-		if ($i.policies.chatAvailability === 'available' && user.canChat && user.host == null) {
-			menuItems.push({
-				type: 'link',
-				icon: 'ti ti-messages',
-				text: i18n.ts._chat.chatWithThisUser,
-				to: `/chat/user/${user.id}`,
-			});
-		}
 
 		menuItems.push({ type: 'divider' }, {
 			icon: user.isMuted ? 'ti ti-eye' : 'ti ti-eye-off',

@@ -21,21 +21,3 @@ export const qrOptions: QRCodeOptions & QRCodeSVGOptions = {
 		bottomLeft: qrCornerOptions,
 	},
 };
-
-export async function qrcodeImageBitmap(text: string, options: QRCodeOptions & QRCodeSVGOptions & { size: number }): Promise<ImageBitmap> {
-	const { qrcode } = await import('etiket/qr');
-	const svgUrl = URL.createObjectURL(new Blob([qrcode(text, options)], { type: 'image/svg+xml' }));
-	try {
-		const img = new Image();
-		img.src = svgUrl;
-		await img.decode();
-
-		const canvas = new OffscreenCanvas(options.size, options.size);
-		const ctx = canvas.getContext('2d');
-		if (ctx == null) throw new Error('Failed to get 2d context');
-		ctx.drawImage(img, 0, 0, options.size, options.size);
-		return canvas.transferToImageBitmap();
-	} finally {
-		URL.revokeObjectURL(svgUrl);
-	}
-}

@@ -37,7 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</I18n>
 							<div>{{ i18n.ts._2fa.step2 }}</div>
 							<div class="_gaps_s">
-								<a :class="$style.qrRoot" :href="twoFactorData.url" v-html="qrSvg"></a>
+								<a :class="$style.qrRoot" :href="twoFactorData.url" :aria-label="i18n.ts.launchApp" v-html="qrSvg"></a>
 								<div><MkButton inline rounded type="routerLink" :to="twoFactorData.url" :linkBehavior="'browser'">{{ i18n.ts.launchApp }}</MkButton></div>
 							</div>
 							<MkKeyValue :copy="twoFactorData.url">

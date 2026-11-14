@@ -21,14 +21,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</FormSection>
 				</SearchMarker>
 
-				<FormSection>
-					<SearchMarker :keywords="['announcement', 'email']">
-						<MkSwitch :modelValue="$i.receiveAnnouncementEmail" @update:modelValue="onChangeReceiveAnnouncementEmail">
-							<template #label><SearchLabel>{{ i18n.ts.receiveAnnouncementFromInstance }}</SearchLabel></template>
-						</MkSwitch>
-					</SearchMarker>
-				</FormSection>
-
 				<SearchMarker :keywords="['notification', 'email']">
 					<FormSection>
 						<template #label><SearchLabel>{{ i18n.ts.emailNotification }}</SearchLabel></template>

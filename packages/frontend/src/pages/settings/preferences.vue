@@ -73,14 +73,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</MkPreferenceContainer>
 							</SearchMarker>
 
-							<SearchMarker :keywords="['avatar', 'icon', 'decoration', 'show']">
-								<MkPreferenceContainer k="showAvatarDecorations">
-									<MkSwitch v-model="showAvatarDecorations">
-										<template #label><SearchLabel>{{ i18n.ts.showAvatarDecorations }}</SearchLabel></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-
 							<SearchMarker :keywords="['follow', 'confirm', 'always']">
 								<MkPreferenceContainer k="alwaysConfirmFollow">
 									<MkSwitch v-model="alwaysConfirmFollow">
@@ -175,14 +167,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</MkPreferenceContainer>
 							</SearchMarker>
 
-							<SearchMarker :keywords="['pinned', 'list']">
-								<MkFolder>
-									<template #label><SearchLabel>{{ i18n.ts.pinnedList }}</SearchLabel></template>
-									<!-- 複数ピン止め管理できるようにしたいけどめんどいので一旦ひとつのみ -->
-									<MkButton v-if="prefer.r.pinnedUserLists.value.length === 0" @click="setPinnedList()">{{ i18n.ts.add }}</MkButton>
-									<MkButton v-else danger @click="removePinnedList()"><i class="ti ti-trash"></i> {{ i18n.ts.remove }}</MkButton>
-								</MkFolder>
-							</SearchMarker>
 						</div>
 
 						<hr>
@@ -443,47 +427,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</SearchMarker>
-
-			<template v-if="$i.policies.chatAvailability !== 'unavailable'">
-				<SearchMarker v-slot="slotProps" :keywords="['chat', 'messaging']">
-					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
-						<template #label><SearchLabel>{{ i18n.ts.directMessage }}</SearchLabel></template>
-						<template #icon><SearchIcon><i class="ti ti-messages"></i></SearchIcon></template>
-
-						<div class="_gaps_s">
-							<SearchMarker :keywords="['show', 'sender', 'name']">
-								<MkPreferenceContainer k="chat.showSenderName">
-									<MkSwitch v-model="chatShowSenderName">
-										<template #label><SearchLabel>{{ i18n.ts._settings._chat.showSenderName }}</SearchLabel></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-
-							<SearchMarker :keywords="['send', 'enter', 'newline']">
-								<MkPreferenceContainer k="chat.sendOnEnter">
-									<MkSwitch v-model="chatSendOnEnter">
-										<template #label><SearchLabel>{{ i18n.ts._settings._chat.sendOnEnter }}</SearchLabel></template>
-										<template #caption>
-											<div class="_gaps_s">
-												<div>
-													<b>{{ i18n.ts._settings.ifOn }}:</b>
-													<div>{{ i18n.ts._chat.send }}: Enter</div>
-													<div>{{ i18n.ts._chat.newline }}: Shift + Enter</div>
-												</div>
-												<div>
-													<b>{{ i18n.ts._settings.ifOff }}:</b>
-													<div>{{ i18n.ts._chat.send }}: Ctrl + Enter</div>
-													<div>{{ i18n.ts._chat.newline }}: Enter</div>
-												</div>
-											</div>
-										</template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-						</div>
-					</MkFolder>
-				</SearchMarker>
-			</template>
 
 			<SearchMarker v-slot="slotProps" :keywords="['accessibility']">
 				<MkFolder :defaultOpen="slotProps.isParentOfTarget">
@@ -863,7 +806,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div class="_gaps_s">
 			<FormLink to="/settings/navbar"><template #icon><i class="ti ti-list"></i></template>{{ i18n.ts.navbar }}</FormLink>
 			<FormLink to="/settings/statusbar"><template #icon><i class="ti ti-list"></i></template>{{ i18n.ts.statusbar }}</FormLink>
-			<FormLink to="/settings/deck"><template #icon><i class="ti ti-columns"></i></template>{{ i18n.ts.deck }}</FormLink>
+
 			<FormLink to="/settings/custom-css"><template #icon><i class="ti ti-code"></i></template>{{ i18n.ts.customCss }}</FormLink>
 		</div>
 	</div>
@@ -1071,23 +1014,6 @@ function removeEmojiIndex(lang: string) {
 	}
 
 	os.promiseDialog(main());
-}
-
-async function setPinnedList() {
-	const lists = await misskeyApi('users/lists/list');
-	const { canceled, result: listId } = await os.select({
-		title: i18n.ts.selectList,
-		items: lists.map(x => ({
-			value: x.id, label: x.name,
-		})),
-	});
-	if (canceled || listId == null) return;
-
-	prefer.commit('pinnedUserLists', [lists.find((x) => x.id === listId)!]);
-}
-
-function removePinnedList() {
-	prefer.commit('pinnedUserLists', []);
 }
 
 function enableAllDataSaver() {

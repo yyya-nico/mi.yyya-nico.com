@@ -45,24 +45,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</XFolder>
 
-		<XFolder v-if="matchQuery([i18n.ts._role._options.chatAvailability, 'chatAvailability'])" v-model:policyMeta="policyMetaModel.chatAvailability" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.chatAvailability }}</template>
-			<template #valueText>{{ valuesModel.chatAvailability === 'available' ? i18n.ts.yes : valuesModel.chatAvailability === 'readonly' ? i18n.ts.readonly : i18n.ts.no }}</template>
-			<template #default="{ disabled }">
-				<MkSelect
-					v-model="valuesModel.chatAvailability"
-					:disabled="disabled"
-					:items="[
-						{ label: i18n.ts.enabled, value: 'available' },
-						{ label: i18n.ts.readonly, value: 'readonly' },
-						{ label: i18n.ts.disabled, value: 'unavailable' },
-					]"
-				>
-					<template #label>{{ i18n.ts.enable }}</template>
-				</MkSelect>
-			</template>
-		</XFolder>
-
 		<XFolder v-if="matchQuery([i18n.ts._role._options.mentionMax, 'mentionLimit'])" v-model:policyMeta="policyMetaModel.mentionLimit" :isBaseRole="isBaseRole" :readonly="readonly">
 			<template #label>{{ i18n.ts._role._options.mentionMax }}</template>
 			<template #valueText>{{ valuesModel.mentionLimit }}</template>
@@ -111,16 +93,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</XFolder>
 
-		<XFolder v-if="matchQuery([i18n.ts._role._options.canManageAvatarDecorations, 'canManageAvatarDecorations'])" v-model:policyMeta="policyMetaModel.canManageAvatarDecorations" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.canManageAvatarDecorations }}</template>
-			<template #valueText>{{ valuesModel.canManageAvatarDecorations ? i18n.ts.yes : i18n.ts.no }}</template>
-			<template #default="{ disabled }">
-				<MkSwitch v-model="valuesModel.canManageAvatarDecorations" :disabled="disabled">
-					<template #label>{{ i18n.ts.enable }}</template>
-				</MkSwitch>
-			</template>
-		</XFolder>
-
 		<XFolder v-if="matchQuery([i18n.ts._role._options.canManageCustomEmojis, 'canManageCustomEmojis'])" v-model:policyMeta="policyMetaModel.canManageCustomEmojis" :isBaseRole="isBaseRole" :readonly="readonly">
 			<template #label>{{ i18n.ts._role._options.canManageCustomEmojis }}</template>
 			<template #valueText>{{ valuesModel.canManageCustomEmojis ? i18n.ts.yes : i18n.ts.no }}</template>
@@ -156,16 +128,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template #valueText>{{ valuesModel.canUseTranslator ? i18n.ts.yes : i18n.ts.no }}</template>
 			<template #default="{ disabled }">
 				<MkSwitch v-model="valuesModel.canUseTranslator" :disabled="disabled">
-					<template #label>{{ i18n.ts.enable }}</template>
-				</MkSwitch>
-			</template>
-		</XFolder>
-
-		<XFolder v-if="matchQuery([i18n.ts._role._options.canCreateChannel, 'canCreateChannel'])" v-model:policyMeta="policyMetaModel.canCreateChannel" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.canCreateChannel }}</template>
-			<template #valueText>{{ valuesModel.canCreateChannel ? i18n.ts.yes : i18n.ts.no }}</template>
-			<template #default="{ disabled }">
-				<MkSwitch v-model="valuesModel.canCreateChannel" :disabled="disabled">
 					<template #label>{{ i18n.ts.enable }}</template>
 				</MkSwitch>
 			</template>
@@ -237,15 +199,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</XFolder>
 
-		<XFolder v-if="matchQuery([i18n.ts._role._options.antennaMax, 'antennaLimit'])" v-model:policyMeta="policyMetaModel.antennaLimit" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.antennaMax }}</template>
-			<template #valueText>{{ valuesModel.antennaLimit }}</template>
-			<template #default="{ disabled }">
-				<MkInput v-model="valuesModel.antennaLimit" type="number" :disabled="disabled">
-				</MkInput>
-			</template>
-		</XFolder>
-
 		<XFolder v-if="matchQuery([i18n.ts._role._options.wordMuteMax, 'wordMuteLimit'])" v-model:policyMeta="policyMetaModel.wordMuteLimit" :isBaseRole="isBaseRole" :readonly="readonly">
 			<template #label>{{ i18n.ts._role._options.wordMuteMax }}</template>
 			<template #valueText>{{ valuesModel.wordMuteLimit }}</template>
@@ -283,48 +236,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</XFolder>
 
-		<XFolder v-if="matchQuery([i18n.ts._role._options.userListMax, 'userListLimit'])" v-model:policyMeta="policyMetaModel.userListLimit" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.userListMax }}</template>
-			<template #valueText>{{ valuesModel.userListLimit }}</template>
-			<template #default="{ disabled }">
-				<MkInput v-model="valuesModel.userListLimit" type="number" :disabled="disabled">
-				</MkInput>
-			</template>
-		</XFolder>
-
-		<XFolder v-if="matchQuery([i18n.ts._role._options.userEachUserListsMax, 'userEachUserListsLimit'])" v-model:policyMeta="policyMetaModel.userEachUserListsLimit" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.userEachUserListsMax }}</template>
-			<template #valueText>{{ valuesModel.userEachUserListsLimit }}</template>
-			<template #default="{ disabled }">
-				<MkInput v-model="valuesModel.userEachUserListsLimit" type="number" :disabled="disabled">
-				</MkInput>
-			</template>
-		</XFolder>
-
 		<XFolder v-if="matchQuery([i18n.ts._role._options.canHideAds, 'canHideAds'])" v-model:policyMeta="policyMetaModel.canHideAds" :isBaseRole="isBaseRole" :readonly="readonly">
 			<template #label>{{ i18n.ts._role._options.canHideAds }}</template>
 			<template #valueText>{{ valuesModel.canHideAds ? i18n.ts.yes : i18n.ts.no }}</template>
 			<template #default="{ disabled }">
 				<MkSwitch v-model="valuesModel.canHideAds" :disabled="disabled">
-					<template #label>{{ i18n.ts.enable }}</template>
-				</MkSwitch>
-			</template>
-		</XFolder>
-
-		<XFolder v-if="matchQuery([i18n.ts._role._options.avatarDecorationLimit, 'avatarDecorationLimit'])" v-model:policyMeta="policyMetaModel.avatarDecorationLimit" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.avatarDecorationLimit }}</template>
-			<template #valueText>{{ valuesModel.avatarDecorationLimit }}</template>
-			<template #default="{ disabled }">
-				<MkInput v-model="avatarDecorationLimit" type="number" :disabled="disabled" :min="0" :max="16" @update:modelValue="updateAvatarDecorationLimit">
-				</MkInput>
-			</template>
-		</XFolder>
-
-		<XFolder v-if="matchQuery([i18n.ts._role._options.canImportAntennas, 'canImportAntennas'])" v-model:policyMeta="policyMetaModel.canImportAntennas" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.canImportAntennas }}</template>
-			<template #valueText>{{ valuesModel.canImportAntennas ? i18n.ts.yes : i18n.ts.no }}</template>
-			<template #default="{ disabled }">
-				<MkSwitch v-model="valuesModel.canImportAntennas" :disabled="disabled">
 					<template #label>{{ i18n.ts.enable }}</template>
 				</MkSwitch>
 			</template>
@@ -360,16 +276,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</XFolder>
 
-		<XFolder v-if="matchQuery([i18n.ts._role._options.canImportUserLists, 'canImportUserList'])" v-model:policyMeta="policyMetaModel.canImportUserLists" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.canImportUserLists }}</template>
-			<template #valueText>{{ valuesModel.canImportUserLists ? i18n.ts.yes : i18n.ts.no }}</template>
-			<template #default="{ disabled }">
-				<MkSwitch v-model="valuesModel.canImportUserLists" :disabled="disabled">
-					<template #label>{{ i18n.ts.enable }}</template>
-				</MkSwitch>
-			</template>
-		</XFolder>
-
 		<XFolder v-if="matchQuery([i18n.ts._role._options.noteDraftLimit, 'noteDraftLimit'])" v-model:policyMeta="policyMetaModel.noteDraftLimit" :isBaseRole="isBaseRole" :readonly="readonly">
 			<template #label>{{ i18n.ts._role._options.noteDraftLimit }}</template>
 			<template #valueText>{{ valuesModel.noteDraftLimit }}</template>
@@ -385,16 +291,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template #default="{ disabled }">
 				<MkInput v-model="valuesModel.scheduledNoteLimit" type="number" :disabled="disabled" :min="0">
 				</MkInput>
-			</template>
-		</XFolder>
-
-		<XFolder v-if="matchQuery([i18n.ts._role._options.watermarkAvailable, 'watermarkAvailable'])" v-model:policyMeta="policyMetaModel.watermarkAvailable" :isBaseRole="isBaseRole" :readonly="readonly">
-			<template #label>{{ i18n.ts._role._options.watermarkAvailable }}</template>
-			<template #valueText>{{ valuesModel.watermarkAvailable ? i18n.ts.yes : i18n.ts.no }}</template>
-			<template #default="{ disabled }">
-				<MkSwitch v-model="valuesModel.watermarkAvailable" :disabled="disabled">
-					<template #label>{{ i18n.ts.enable }}</template>
-				</MkSwitch>
 			</template>
 		</XFolder>
 	</div>

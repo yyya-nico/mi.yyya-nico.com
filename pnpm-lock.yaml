@@ -426,9 +426,6 @@ importers:
       fastify-raw-body:
         specifier: 6.0.3
         version: 6.0.3
-      feed:
-        specifier: 6.0.0
-        version: 6.0.0
       file-type:
         specifier: 22.3.0
         version: 22.3.0(supports-color@10.2.2)
@@ -537,9 +534,6 @@ importers:
       rename:
         specifier: 1.0.4
         version: 1.0.4(supports-color@10.2.2)
-      rss-parser:
-        specifier: 3.13.0
-        version: 3.13.0
       sanitize-html:
         specifier: 2.18.1
         version: 2.18.1
@@ -779,18 +773,9 @@ importers:
       '@simplewebauthn/browser':
         specifier: 14.0.0
         version: 14.0.0
-      '@syuilo/aiscript':
-        specifier: 1.2.1
-        version: 1.2.1
-      '@syuilo/aiscript-0-19-0':
-        specifier: npm:@syuilo/aiscript@^0.19.0
-        version: '@syuilo/aiscript@0.19.0'
       '@vitejs/plugin-vue':
         specifier: 6.0.10
         version: 6.0.10(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(sass-embedded@1.107.1)(sass@1.107.1)(tsx@4.23.15))(vue@3.5.44(typescript@6.0.3))
-      aiscript-vscode:
-        specifier: github:aiscript-dev/aiscript-vscode#v0.1.16
-        version: https://codeload.github.com/aiscript-dev/aiscript-vscode/tar.gz/1dc7f60cda78d030dadfc518a33c472202b2ef67
       analytics:
         specifier: 0.8.19
         version: 0.8.19(@types/dlv@1.1.5)
@@ -818,9 +803,6 @@ importers:
       compare-versions:
         specifier: 6.1.1
         version: 6.1.1
-      cropperjs:
-        specifier: 2.3.1
-        version: 2.3.1
       date-fns:
         specifier: 4.4.0
         version: 4.4.0
@@ -830,9 +812,6 @@ importers:
       eventemitter3:
         specifier: 5.0.4
         version: 5.0.4
-      exifreader:
-        specifier: 4.52.0
-        version: 4.52.0
       frontend-shared:
         specifier: workspace:*
         version: link:../frontend-shared
@@ -866,21 +845,12 @@ importers:
       mfm-js:
         specifier: 0.28.0
         version: 0.28.0
-      misskey-bubble-game:
-        specifier: workspace:*
-        version: link:../misskey-bubble-game
       misskey-js:
         specifier: workspace:*
         version: link:../misskey-js
-      misskey-reversi:
-        specifier: workspace:*
-        version: link:../misskey-reversi
       punycode.js:
         specifier: 2.3.1
         version: 2.3.1
-      qr-scanner:
-        specifier: 1.4.2
-        version: 1.4.2
       sanitize-html:
         specifier: 2.18.1
         version: 2.18.1

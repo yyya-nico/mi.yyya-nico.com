@@ -246,7 +246,7 @@ describe('UserEntityService', () => {
 			// is detail
 			expect(actual.birthday).toBe('2000-01-01');
 			// is detail and me
-			expect(actual.achievements).toEqual(achievements);
+			expect(actual.achievements).toEqual([]);
 		});
 
 		test('alsoKnownAs as string does not throw', async () => {

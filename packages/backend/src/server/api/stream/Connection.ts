@@ -172,6 +172,7 @@ export default class Connection {
 
 	@bindThis
 	private onBroadcastMessage(data: GlobalEvents['broadcast']['payload']) {
+		if (data.type === 'announcementCreated') return;
 		this.sendMessageToWs(data.type, data.body);
 	}
 
@@ -310,6 +311,8 @@ export default class Connection {
 		if (this.channels.size >= MAX_CHANNELS_PER_CONNECTION) {
 			return;
 		}
+
+		if (['userList', 'antenna', 'channel', 'chatUser', 'chatRoom', 'reversi', 'reversiGame'].includes(channel)) return;
 
 		const channelConstructor = this.getChannelConstructor(channel);
 

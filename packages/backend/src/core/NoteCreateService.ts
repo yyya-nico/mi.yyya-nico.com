@@ -447,20 +447,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
 	}, data: Option, silent = false): Promise<MiNote> {
-		// チャンネル外にリプライしたら対象のスコープに合わせる
-		// (クライアントサイドでやっても良い処理だと思うけどとりあえずサーバーサイドで)
-		if (data.reply && data.channel && data.reply.channelId !== data.channel.id) {
-			if (data.reply.channelId) {
-				data.channel = await this.channelsRepository.findOneBy({ id: data.reply.channelId });
-			} else {
-				data.channel = null;
-			}
-		}
-
-		// チャンネル内にリプライしたら対象のスコープに合わせる
-		// (クライアントサイドでやっても良い処理だと思うけどとりあえずサーバーサイドで)
-		if (data.reply && (data.channel == null) && data.reply.channelId) {
-			data.channel = await this.channelsRepository.findOneBy({ id: data.reply.channelId });
+		if (data.channel != null || data.reply?.channelId != null) {
+			throw new IdentifiableError('bfa3905b-25f5-4894-b430-da331a490e4b', 'Channels have been removed.');
 		}
 
 		if (data.createdAt == null) data.createdAt = new Date();

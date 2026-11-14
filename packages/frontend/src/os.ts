@@ -12,7 +12,6 @@ import type { ComponentEmit, ComponentProps as CP } from 'vue-component-type-hel
 import type { Form, GetFormResultType } from '@/utility/form.js';
 import type { MenuItem } from '@/types/menu.js';
 import type { PostFormProps } from '@/types/post-form.js';
-import type { UploaderFeatures } from '@/composables/use-uploader.js';
 import type { MkSelectItem } from '@/components/MkSelect.vue';
 import type { OptionValue } from '@/types/option-value.js';
 import type { MkDialogReturnType } from '@/components/MkDialog.vue';
@@ -597,22 +596,6 @@ export async function pickEmoji(anchorElement: HTMLElement, opts: ComponentProps
 	});
 }
 
-export async function cropImageFile<F extends File | Blob>(imageFile: F, options: {
-	aspectRatio: number | null;
-}): Promise<F> {
-	return new Promise(resolve => {
-		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkCropperDialog.vue')), {
-			imageFile: imageFile,
-			aspectRatio: options.aspectRatio,
-		}, {
-			ok: x => {
-				resolve(x as F);
-			},
-			closed: () => dispose(),
-		});
-	});
-}
-
 export function popupMenu(items: (MenuItem | null)[], anchorElement?: HTMLElement | EventTarget | null, options?: {
 	align?: string;
 	width?: number;
@@ -752,7 +735,6 @@ export async function launchUploader(
 	options?: {
 		folderId?: string | null;
 		multiple?: boolean;
-		features?: UploaderFeatures;
 	},
 ): Promise<Misskey.entities.DriveFile[]> {
 	return new Promise((res, rej) => {
@@ -762,7 +744,6 @@ export async function launchUploader(
 			files: markRaw(files),
 			folderId: options?.folderId,
 			multiple: options?.multiple,
-			features: options?.features,
 		}, {
 			done: driveFiles => {
 				if (driveFiles.length === 0) return rej();

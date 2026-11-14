@@ -30,33 +30,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 </Transition>
 
-<Transition
-	:enterActiveClass="prefer.s.animation ? $style.transition_widgetsDrawerBg_enterActive : ''"
-	:leaveActiveClass="prefer.s.animation ? $style.transition_widgetsDrawerBg_leaveActive : ''"
-	:enterFromClass="prefer.s.animation ? $style.transition_widgetsDrawerBg_enterFrom : ''"
-	:leaveToClass="prefer.s.animation ? $style.transition_widgetsDrawerBg_leaveTo : ''"
->
-	<div
-		v-if="widgetsShowing"
-		:class="$style.widgetsDrawerBg"
-		class="_modalBg"
-		@click="widgetsShowing = false"
-		@touchstart.passive="widgetsShowing = false"
-	></div>
-</Transition>
-
-<Transition
-	:enterActiveClass="prefer.s.animation ? $style.transition_widgetsDrawer_enterActive : ''"
-	:leaveActiveClass="prefer.s.animation ? $style.transition_widgetsDrawer_leaveActive : ''"
-	:enterFromClass="prefer.s.animation ? $style.transition_widgetsDrawer_enterFrom : ''"
-	:leaveToClass="prefer.s.animation ? $style.transition_widgetsDrawer_leaveTo : ''"
->
-	<div v-if="widgetsShowing" :class="$style.widgetsDrawer">
-		<button class="_button" :class="$style.widgetsCloseButton" @click="widgetsShowing = false"><i class="ti ti-x"></i></button>
-		<XWidgets/>
-	</div>
-</Transition>
-
 <component
 	:is="popup.component"
 	v-for="popup in popups"
@@ -121,7 +94,6 @@ import { store } from '@/store.js';
 import XNavbar from '@/ui/_common_/navbar.vue';
 
 const XStreamIndicator = defineAsyncComponent(() => import('./stream-indicator.vue'));
-const XWidgets = defineAsyncComponent(() => import('./widgets.vue'));
 
 const drawerMenuShowing = defineModel<boolean>('drawerMenuShowing');
 const widgetsShowing = defineModel<boolean>('widgetsShowing');

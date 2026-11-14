@@ -8,27 +8,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<XTitlebar v-if="prefer.r.showTitlebar.value" style="flex-shrink: 0;"/>
 
 	<div :class="$style.nonTitlebarArea">
-		<XSidebar v-if="!isMobile" :class="$style.sidebar" :showWidgetButton="!showWidgetsSide" @widgetButtonClick="widgetsShowing = true"/>
+		<XSidebar v-if="!isMobile" :class="$style.sidebar" :showWidgetButton="false"/>
 
 		<div :class="[$style.contents, !isMobile && prefer.r.showTitlebar.value ? $style.withSidebarAndTitlebar : null]" @contextmenu.stop="onContextmenu">
 			<div>
 				<XReloadSuggestion v-if="shouldSuggestReload"/>
 				<XPreferenceRestore v-if="shouldSuggestRestoreBackup"/>
 				<XThemePreviewing v-if="isThemePreviewMode"/>
-				<XAnnouncements v-if="$i"/>
 				<XStatusBars :class="$style.statusbars"/>
 			</div>
 			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content"/>
 			<RouterView v-else :class="$style.content"/>
-			<XMobileFooterMenu v-if="isMobile" ref="navFooter" v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing"/>
+			<XMobileFooterMenu v-if="isMobile" ref="navFooter" v-model:drawerMenuShowing="drawerMenuShowing"/>
 		</div>
 
-		<div v-if="showWidgetsSide && !pageMetadata?.needWideArea" :class="$style.widgets">
-			<XWidgets/>
-		</div>
 	</div>
 
-	<XCommon v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing"/>
+	<XCommon v-model:drawerMenuShowing="drawerMenuShowing"/>
 </div>
 </template>
 
@@ -50,24 +46,19 @@ import { i18n } from '@/i18n.js';
 import { $i } from '@/i.js';
 import { provideMetadataReceiver, provideReactiveMetadata } from '@/page.js';
 import { deviceKind } from '@/utility/device-kind.js';
-import { miLocalStorage } from '@/local-storage.js';
 import { mainRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
 import { shouldSuggestRestoreBackup } from '@/preferences/utility.js';
 import { DI } from '@/di.js';
 import { shouldSuggestReload } from '@/utility/reload-suggest.js';
 
-const XWidgets = defineAsyncComponent(() => import('./_common_/widgets.vue'));
 const XStatusBars = defineAsyncComponent(() => import('@/ui/_common_/statusbars.vue'));
-const XAnnouncements = defineAsyncComponent(() => import('@/ui/_common_/announcements.vue'));
 
 const isRoot = computed(() => mainRouter.currentRoute.value.name === 'index');
 
-const DESKTOP_THRESHOLD = 1100;
 const MOBILE_THRESHOLD = 500;
 
 // デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
-const showWidgetsSide = window.innerWidth >= DESKTOP_THRESHOLD;
 
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
 window.addEventListener('resize', () => {
@@ -75,7 +66,6 @@ window.addEventListener('resize', () => {
 });
 
 const pageMetadata = ref<null | PageMetadata>(null);
-const widgetsShowing = ref(false);
 
 provide(DI.router, mainRouter);
 provideMetadataReceiver((metadataGetter) => {
@@ -96,15 +86,6 @@ const drawerMenuShowing = ref(false);
 mainRouter.on('change', () => {
 	drawerMenuShowing.value = false;
 });
-
-if (window.innerWidth > 1024) {
-	const tempUI = miLocalStorage.getItem('ui_temp');
-	if (tempUI) {
-		miLocalStorage.setItem('ui', tempUI);
-		miLocalStorage.removeItem('ui_temp');
-		window.location.reload();
-	}
-}
 
 function onContextmenu(ev: PointerEvent) {
 	if (isLink(ev.target as HTMLElement)) return;

@@ -17,7 +17,7 @@ import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
 import { store } from '@/store.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { getUserMenu } from '@/utility/get-user-menu.js';
-import { clipsCache, favoritedChannelsCache } from '@/cache.js';
+import { clipsCache } from '@/cache.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { isSupportShare } from '@/utility/navigator.js';
 import { getAppearNote } from '@/utility/get-appear-note.js';
@@ -231,13 +231,6 @@ export function getNoteMenu(props: {
 		});
 	}
 
-	function toggleFavorite(favorite: boolean): void {
-		claimAchievement('noteFavorited1');
-		os.apiWithDialog(favorite ? 'notes/favorites/create' : 'notes/favorites/delete', {
-			noteId: appearNote.id,
-		});
-	}
-
 	function toggleThreadMute(mute: boolean): void {
 		os.apiWithDialog(mute ? 'notes/thread-muting/create' : 'notes/thread-muting/delete', {
 			noteId: appearNote.id,
@@ -261,19 +254,6 @@ export function getNoteMenu(props: {
 	async function unclip(): Promise<void> {
 		if (!props.currentClip) return;
 		os.apiWithDialog('clips/remove-note', { clipId: props.currentClip.id, noteId: appearNote.id });
-	}
-
-	async function removeFromAntenna(): Promise<void> {
-		if (!props.currentAntenna) return;
-
-		const { canceled } = await os.confirm({
-			type: 'warning',
-			text: i18n.tsx.removeNoteFromAntennaConfirm({ name: props.currentAntenna.name }),
-		});
-		if (canceled) return;
-
-		await os.apiWithDialog('antennas/remove-note', { antennaId: props.currentAntenna.id, noteId: appearNote.id });
-		globalEvents.emit('noteRemovedFromAntenna', props.currentAntenna.id, appearNote.id);
 	}
 
 	async function _promote(): Promise<void> {
@@ -418,16 +398,6 @@ export function getNoteMenu(props: {
 
 		menuItems.push({ type: 'divider' });
 
-		menuItems.push(statePromise.then(state => state.isFavorited ? {
-			icon: 'ti ti-star-off',
-			text: i18n.ts.unfavorite,
-			action: () => toggleFavorite(false),
-		} : {
-			icon: 'ti ti-star',
-			text: i18n.ts.favorite,
-			action: () => toggleFavorite(true),
-		}));
-
 		menuItems.push({
 			type: 'parent',
 			icon: 'ti ti-paperclip',
@@ -478,41 +448,6 @@ export function getNoteMenu(props: {
 			menuItems.push(getAbuseNoteMenu(appearNote, i18n.ts.reportAbuse));
 		}
 
-		if (appearNote.channel && (appearNote.channel.userId === $i.id || $i.isModerator || $i.isAdmin)) {
-			menuItems.push({ type: 'divider' });
-			menuItems.push({
-				type: 'parent',
-				icon: 'ti ti-device-tv',
-				text: i18n.ts.channel,
-				children: async () => {
-					const channelChildMenu = [] as MenuItem[];
-
-					const channel = await misskeyApi('channels/show', { channelId: appearNote.channel!.id });
-
-					if (channel.pinnedNoteIds.includes(appearNote.id)) {
-						channelChildMenu.push({
-							icon: 'ti ti-pinned-off',
-							text: i18n.ts.unpin,
-							action: () => os.apiWithDialog('channels/update', {
-								channelId: appearNote.channel!.id,
-								pinnedNoteIds: channel.pinnedNoteIds.filter(id => id !== appearNote.id),
-							}),
-						});
-					} else {
-						channelChildMenu.push({
-							icon: 'ti ti-pin',
-							text: i18n.ts.pin,
-							action: () => os.apiWithDialog('channels/update', {
-								channelId: appearNote.channel!.id,
-								pinnedNoteIds: [...channel.pinnedNoteIds, appearNote.id],
-							}),
-						});
-					}
-					return channelChildMenu;
-				},
-			});
-		}
-
 		if (appearNote.userId === $i.id || $i.isModerator || $i.isAdmin) {
 			menuItems.push({ type: 'divider' });
 			if (appearNote.userId === $i.id) {
@@ -523,12 +458,7 @@ export function getNoteMenu(props: {
 				});
 			}
 			if (props.currentAntenna != null) {
-				menuItems.push({
-					icon: 'ti ti-trash',
-					text: i18n.ts.removeFromAntenna,
-					danger: true,
-					action: removeFromAntenna,
-				});
+				menuItems.push();
 			}
 			menuItems.push({
 				icon: 'ti ti-trash',
@@ -538,12 +468,7 @@ export function getNoteMenu(props: {
 			});
 		} else if (props.currentAntenna != null) {
 			menuItems.push({ type: 'divider' });
-			menuItems.push({
-				icon: 'ti ti-trash',
-				text: i18n.ts.removeFromAntenna,
-				danger: true,
-				action: removeFromAntenna,
-			});
+			menuItems.push();
 		}
 	} else {
 		menuItems.push({
@@ -635,45 +560,6 @@ export function getRenoteMenu(props: {
 	const normalRenoteItems: MenuItem[] = [];
 	const normalExternalChannelRenoteItems: MenuItem[] = [];
 
-	if (appearNote.channel) {
-		channelRenoteItems.push(...[{
-			text: i18n.ts.inChannelRenote,
-			icon: 'ti ti-repeat',
-			action: () => {
-				const el = props.renoteButton.value;
-				if (el && prefer.s.animation) {
-					const rect = el.getBoundingClientRect();
-					const x = rect.left + (el.offsetWidth / 2);
-					const y = rect.top + (el.offsetHeight / 2);
-					const { dispose } = os.popup(MkRippleEffect, { x, y }, {
-						end: () => dispose(),
-					});
-				}
-
-				if (!props.mock) {
-					misskeyApi('notes/create', {
-						renoteId: appearNote.id,
-						channelId: appearNote.channelId,
-					}).then((res) => {
-						os.toast(i18n.ts.renoted);
-						globalEvents.emit('notePosted', res.createdNote);
-					});
-				}
-			},
-		}, {
-			text: i18n.ts.inChannelQuote,
-			icon: 'ti ti-quote',
-			action: () => {
-				if (!props.mock) {
-					os.post({
-						renote: appearNote,
-						channel: appearNote.channel,
-					});
-				}
-			},
-		}]);
-	}
-
 	if (!appearNote.channel || appearNote.channel.allowRenoteToExternal) {
 		normalRenoteItems.push(...[{
 			text: i18n.ts.renote,
@@ -718,42 +604,6 @@ export function getRenoteMenu(props: {
 				});
 			},
 		}])]);
-
-		normalExternalChannelRenoteItems.push({
-			type: 'parent',
-			icon: 'ti ti-repeat',
-			text: appearNote.channel ? i18n.ts.renoteToOtherChannel : i18n.ts.renoteToChannel,
-			children: async () => {
-				const channels = await favoritedChannelsCache.fetch();
-				return channels.filter((channel) => {
-					if (!appearNote.channelId) return true;
-					return channel.id !== appearNote.channelId;
-				}).map((channel) => ({
-					text: channel.name,
-					action: () => {
-						const el = props.renoteButton.value;
-						if (el && prefer.s.animation) {
-							const rect = el.getBoundingClientRect();
-							const x = rect.left + (el.offsetWidth / 2);
-							const y = rect.top + (el.offsetHeight / 2);
-							const { dispose } = os.popup(MkRippleEffect, { x, y }, {
-								end: () => dispose(),
-							});
-						}
-
-						if (!props.mock) {
-							misskeyApi('notes/create', {
-								renoteId: appearNote.id,
-								channelId: channel.id,
-							}).then((res) => {
-								os.toast(i18n.tsx.renotedToX({ name: channel.name }));
-								globalEvents.emit('notePosted', res.createdNote);
-							});
-						}
-					},
-				}));
-			},
-		});
 	}
 
 	const renoteItems = [

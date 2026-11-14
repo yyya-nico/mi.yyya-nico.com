@@ -474,11 +474,6 @@ export class UserEntityService implements OnModuleInit {
 
 		const isModerator = isMe && isDetailed ? this.roleService.isModerator(user) : undefined;
 		const isAdmin = isMe && isDetailed ? this.roleService.isAdministrator(user) : undefined;
-		const unreadAnnouncements = isMe && isDetailed ?
-			(await this.announcementService.getUnreadAnnouncements(user)).map((announcement) => ({
-				createdAt: this.idService.parse(announcement.id).date.toISOString(),
-				...announcement,
-			})) : null;
 
 		const notificationsInfo = isMe && isDetailed ? await this.getNotificationsInfo(user.id) : null;
 
@@ -490,14 +485,7 @@ export class UserEntityService implements OnModuleInit {
 			host: user.host,
 			avatarUrl: (user.avatarId == null ? null : user.avatarUrl) ?? this.getIdenticonUrl(user),
 			avatarBlurhash: (user.avatarId == null ? null : user.avatarBlurhash),
-			avatarDecorations: user.avatarDecorations.length > 0 ? this.avatarDecorationService.getAll().then(decorations => user.avatarDecorations.filter(ud => decorations.some(d => d.id === ud.id)).map(ud => ({
-				id: ud.id,
-				angle: ud.angle || undefined,
-				flipH: ud.flipH || undefined,
-				offsetX: ud.offsetX || undefined,
-				offsetY: ud.offsetY || undefined,
-				url: decorations.find(d => d.id === ud.id)!.url,
-			}))) : [],
+			avatarDecorations: [],
 			isBot: user.isBot,
 			isCat: user.isCat,
 			requireSigninToViewContents: user.requireSigninToViewContents === false ? undefined : true,
@@ -553,13 +541,13 @@ export class UserEntityService implements OnModuleInit {
 				pinnedNotes: this.noteEntityService.packMany(pins.map(pin => pin.note!), me, {
 					detail: true,
 				}),
-				pinnedPageId: profile!.pinnedPageId,
-				pinnedPage: profile!.pinnedPageId ? this.pageEntityService.pack(profile!.pinnedPageId, me) : null,
+				pinnedPageId: null,
+				pinnedPage: null,
 				publicReactions: this.isLocalUser(user) ? profile!.publicReactions : false, // https://github.com/misskey-dev/misskey/issues/12964
 				followersVisibility: profile!.followersVisibility,
 				followingVisibility: profile!.followingVisibility,
-				chatScope: user.chatScope,
-				canChat: this.roleService.getUserPolicies(user.id).then(r => r.chatAvailability === 'available'),
+				chatScope: 'none',
+				canChat: false,
 				roles: this.roleService.getUserRoles(user.id).then(roles => roles.filter(role => role.isPublic).sort((a, b) => b.displayOrder - a.displayOrder).map(role => ({
 					id: role.id,
 					name: role.name,
@@ -589,7 +577,7 @@ export class UserEntityService implements OnModuleInit {
 				isModerator: isModerator,
 				isAdmin: isAdmin,
 				injectFeaturedNote: profile!.injectFeaturedNote,
-				receiveAnnouncementEmail: profile!.receiveAnnouncementEmail,
+				receiveAnnouncementEmail: false,
 				alwaysMarkNsfw: profile!.alwaysMarkNsfw,
 				autoSensitive: profile!.autoSensitive,
 				carefulBot: profile!.carefulBot,
@@ -604,10 +592,10 @@ export class UserEntityService implements OnModuleInit {
 				hideOnlineStatus: user.hideOnlineStatus,
 				hasUnreadSpecifiedNotes: false, // 後方互換性のため
 				hasUnreadMentions: false, // 後方互換性のため
-				hasUnreadChatMessages: this.chatService.hasUnreadMessages(user.id),
-				hasUnreadAnnouncement: unreadAnnouncements!.length > 0,
-				unreadAnnouncements,
-				hasUnreadAntenna: this.getHasUnreadAntenna(user.id),
+				hasUnreadChatMessages: false,
+				hasUnreadAnnouncement: false,
+				unreadAnnouncements: [],
+				hasUnreadAntenna: false,
 				hasUnreadChannel: false, // 後方互換性のため
 				hasUnreadNotification: notificationsInfo?.hasUnread, // 後方互換性のため
 				hasPendingReceivedFollowRequest: this.getHasPendingReceivedFollowRequest(user.id),
@@ -616,9 +604,9 @@ export class UserEntityService implements OnModuleInit {
 				hardMutedWords: profile!.hardMutedWords,
 				mutedInstances: profile!.mutedInstances,
 				mutingNotificationTypes: [], // 後方互換性のため
-				notificationRecieveConfig: profile!.notificationRecieveConfig,
+				notificationRecieveConfig: Object.fromEntries(Object.entries(profile!.notificationRecieveConfig).filter(([type]) => type !== 'achievementEarned' && type !== 'chatRoomInvitationReceived').map(([type, config]) => [type, config?.type === 'list' ? { type: 'never' } : config])),
 				emailNotificationTypes: profile!.emailNotificationTypes,
-				achievements: profile!.achievements,
+				achievements: [],
 				loggedInDays: profile!.loggedInDates.length,
 				policies: this.roleService.getUserPolicies(user.id),
 			} : {}),

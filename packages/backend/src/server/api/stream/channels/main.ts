@@ -38,6 +38,8 @@ export class MainChannel extends Channel {
 
 	@bindThis
 	private async onData(data: EventTypesToEventPayload<MainEventTypes>) {
+		if (['pageEvent', 'newChatMessage', 'unreadAntenna', 'readAntenna', 'readAllAnnouncements', 'announcementCreated'].includes(data.type)) return;
+
 		switch (data.type) {
 			case 'notification': {
 				// Ignore notifications from instances the user has muted

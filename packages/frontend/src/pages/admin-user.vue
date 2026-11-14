@@ -151,31 +151,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 
-		<div v-else-if="tab === 'announcements'" class="_gaps">
-			<MkButton primary rounded @click="createAnnouncement"><i class="ti ti-plus"></i> {{ i18n.ts.createNew }}</MkButton>
-
-			<MkSelect v-model="announcementsStatus" :items="announcementsStatusDef">
-				<template #label>{{ i18n.ts.filter }}</template>
-			</MkSelect>
-
-			<MkPagination :paginator="announcementsPaginator">
-				<template #default="{ items }">
-					<div class="_gaps_s">
-						<div v-for="announcement in items" :key="announcement.id" v-panel :class="$style.announcementItem" @click="editAnnouncement(announcement)">
-							<span v-if="'icon' in announcement" style="margin-right: 0.5em;">
-								<i v-if="announcement.icon === 'info'" class="ti ti-info-circle"></i>
-								<i v-else-if="announcement.icon === 'warning'" class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i>
-								<i v-else-if="announcement.icon === 'error'" class="ti ti-circle-x" style="color: var(--MI_THEME-error);"></i>
-								<i v-else-if="announcement.icon === 'success'" class="ti ti-check" style="color: var(--MI_THEME-success);"></i>
-							</span>
-							<span>{{ announcement.title }}</span>
-							<span v-if="announcement.reads > 0" style="margin-left: auto; opacity: 0.7;">{{ i18n.ts.messageRead }}</span>
-						</div>
-					</div>
-				</template>
-			</MkPagination>
-		</div>
-
 		<div v-else-if="tab === 'drive'" class="_gaps">
 			<MkFileListForAdmin :paginator="filesPaginator" viewMode="grid"/>
 		</div>
@@ -271,24 +246,6 @@ const filesPaginator = markRaw(new Paginator('admin/drive/files', {
 	})),
 }));
 
-const {
-	model: announcementsStatus,
-	def: announcementsStatusDef,
-} = useMkSelect({
-	items: [
-		{ label: i18n.ts.active, value: 'active' },
-		{ label: i18n.ts.archived, value: 'archived' },
-	],
-	initialValue: 'active',
-});
-
-const announcementsPaginator = markRaw(new Paginator('admin/announcements/list', {
-	limit: 10,
-	computedParams: computed(() => ({
-		userId: props.userId,
-		status: announcementsStatus.value,
-	})),
-}));
 const expandedRoleIds = ref<(typeof info.value.roles[number]['id'])[]>([]);
 
 function _fetch_() {
@@ -510,23 +467,6 @@ function toggleRoleItem(role: typeof info.value.roles[number]) {
 	}
 }
 
-async function createAnnouncement() {
-	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkUserAnnouncementEditDialog.vue').then(x => x.default), {
-		user: user.value,
-	}, {
-		closed: () => dispose(),
-	});
-}
-
-async function editAnnouncement(announcement: Misskey.entities.AdminAnnouncementsListResponse[number]) {
-	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkUserAnnouncementEditDialog.vue').then(x => x.default), {
-		user: user.value,
-		announcement,
-	}, {
-		closed: () => dispose(),
-	});
-}
-
 watch(user, () => {
 	misskeyApi('ap/get', {
 		uri: user.value.uri ?? `${url}/users/${user.value.id}`,
@@ -553,10 +493,7 @@ const headerTabs = computed(() => isSystem.value ? [{
 	key: 'roles',
 	title: i18n.ts.roles,
 	icon: 'ti ti-badges',
-}, {
-	key: 'announcements',
-	title: i18n.ts.announcements,
-	icon: 'ti ti-speakerphone',
+
 }, {
 	key: 'drive',
 	title: i18n.ts.drive,

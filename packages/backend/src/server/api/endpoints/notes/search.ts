@@ -52,7 +52,7 @@ export const paramDef = {
 			description: 'The local host is represented with `.`.',
 		},
 		userId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
-		channelId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
+		channelId: { type: 'null', default: null },
 	},
 	required: ['query'],
 } as const;

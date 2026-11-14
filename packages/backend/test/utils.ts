@@ -188,75 +188,12 @@ export const react = async (user: UserToken, note: misskey.entities.Note, reacti
 	}, user);
 };
 
-export const userList = async (user: UserToken, userList: Partial<misskey.entities.UserList> = {}): Promise<misskey.entities.UserList> => {
-	const res = await api('users/lists/create', {
-		name: 'test',
-		...userList,
-	}, user);
-	return res.body;
-};
-
-export const page = async (user: UserToken, page: Partial<misskey.entities.Page> = {}): Promise<misskey.entities.Page> => {
-	const res = await api('pages/create', {
-		alignCenter: false,
-		content: [
-			{
-				id: '2be9a64b-5ada-43a3-85f3-ec3429551ded',
-				text: 'Hello World!',
-				type: 'text',
-			},
-		],
-		eyeCatchingImageId: null,
-		font: 'sans-serif' as any,
-		hideTitleWhenPinned: false,
-		name: '1678594845072',
-		script: '',
-		summary: null,
-		title: '',
-		variables: [],
-		...page,
-	}, user);
-	return res.body;
-};
-
-export const play = async (user: UserToken, play: Partial<misskey.entities.Flash> = {}): Promise<misskey.entities.Flash> => {
-	const res = await api('flash/create', {
-		permissions: [],
-		script: 'test',
-		summary: '',
-		title: 'test',
-		...play,
-	}, user);
-	return res.body;
-};
-
 export const clip = async (user: UserToken, clip: Partial<misskey.entities.Clip> = {}): Promise<misskey.entities.Clip> => {
 	const res = await api('clips/create', {
 		description: null,
 		isPublic: true,
 		name: 'test',
 		...clip,
-	}, user);
-	return res.body;
-};
-
-export const galleryPost = async (user: UserToken, galleryPost: Partial<misskey.entities.GalleryPost> = {}): Promise<misskey.entities.GalleryPost> => {
-	const res = await api('gallery/posts/create', {
-		description: null,
-		fileIds: [],
-		isSensitive: false,
-		title: 'test',
-		...galleryPost,
-	}, user);
-	return res.body;
-};
-
-export const channel = async (user: UserToken, channel: Partial<misskey.entities.Channel> = {}): Promise<misskey.entities.Channel> => {
-	const res = await api('channels/create', {
-		bannerId: null,
-		description: null,
-		name: 'test',
-		...channel,
 	}, user);
 	return res.body;
 };

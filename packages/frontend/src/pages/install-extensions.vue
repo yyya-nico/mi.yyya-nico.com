@@ -43,7 +43,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref, computed, nextTick } from 'vue';
 import type { Extension } from '@/components/MkExtensionInstaller.vue';
-import type { AiScriptPluginMeta } from '@/plugin.js';
 import MkLoading from '@/components/global/MkLoading.vue';
 import MkExtensionInstaller from '@/components/MkExtensionInstaller.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -52,7 +51,6 @@ import MkUrl from '@/components/global/MkUrl.vue';
 import FormSection from '@/components/form/section.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
-import { parsePluginMeta, installPlugin } from '@/plugin.js';
 import { installTheme } from '@/theme.js';
 import { parseThemeCode } from '@@/js/theme-code.js';
 import { unisonReload } from '@/utility/unison-reload.js';
@@ -130,25 +128,6 @@ async function _fetch_() {
 	}
 
 	switch (res.type) {
-		case 'plugin':
-			try {
-				const meta = await parsePluginMeta(res.data);
-				data.value = {
-					type: 'plugin',
-					meta,
-					raw: res.data,
-				};
-			} catch (err) {
-				errorKV.value = {
-					title: i18n.ts._externalResourceInstaller._errors._pluginParseFailed.title,
-					description: i18n.ts._externalResourceInstaller._errors._pluginParseFailed.description,
-				};
-				console.error(err);
-				uiPhase.value = 'error';
-				return;
-			}
-			break;
-
 		case 'theme':
 			try {
 				const metaRaw = parseThemeCode(res.data);
@@ -204,23 +183,6 @@ async function install() {
 	if (!data.value) return;
 
 	switch (data.value.type) {
-		case 'plugin':
-			if (!data.value.meta) return;
-			try {
-				await installPlugin(data.value.raw, data.value.meta as AiScriptPluginMeta);
-				os.success();
-				window.setTimeout(() => {
-					close_();
-				}, 3000);
-			} catch (err) {
-				errorKV.value = {
-					title: i18n.ts._externalResourceInstaller._errors._pluginInstallFailed.title,
-					description: i18n.ts._externalResourceInstaller._errors._pluginInstallFailed.description,
-				};
-				console.error(err);
-				uiPhase.value = 'error';
-			}
-			break;
 		case 'theme':
 			if (!data.value.meta) return;
 			await installTheme(data.value.raw);

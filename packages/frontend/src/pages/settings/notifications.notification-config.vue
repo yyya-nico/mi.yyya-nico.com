@@ -8,12 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSelect v-model="type" :items="typeDef">
 	</MkSelect>
 
-	<MkSelect v-if="type === 'list'" v-model="userListId" :items="userListIdDef">
-		<template #label>{{ i18n.ts.userList }}</template>
-	</MkSelect>
-
 	<div class="_buttons">
-		<MkButton inline primary :disabled="type === 'list' && userListId === null" @click="save"><i class="ti ti-check"></i> {{ i18n.ts.save }}</MkButton>
+		<MkButton inline primary @click="save"><i class="ti ti-check"></i> {{ i18n.ts.save }}</MkButton>
 	</div>
 </div>
 </template>
@@ -25,15 +21,11 @@ const notificationConfigTypes = [
 	'follower',
 	'mutualFollow',
 	'followingOrFollower',
-	'list',
 	'never'
 ] as const;
 
 export type NotificationConfig = {
-	type: Exclude<typeof notificationConfigTypes[number], 'list'>;
-} | {
-	type: 'list';
-	userListId: string;
+	type: typeof notificationConfigTypes[number];
 };
 </script>
 
@@ -46,9 +38,8 @@ import { useMkSelect } from '@/composables/use-mkselect.js';
 import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
-	value: NotificationConfig;
-	userLists: Misskey.entities.UserList[];
-	configurableTypes?: NotificationConfig['type'][]; // If not specified, all types are configurable
+	value: NotificationConfig | { type: 'list'; userListId: string };
+		configurableTypes?: NotificationConfig['type'][]; // If not specified, all types are configurable
 }>();
 
 const emit = defineEmits<{
@@ -61,7 +52,6 @@ const notificationConfigTypesI18nMap: Record<typeof notificationConfigTypes[numb
 	follower: i18n.ts.followers,
 	mutualFollow: i18n.ts.mutualFollow,
 	followingOrFollower: i18n.ts.followingOrFollower,
-	list: i18n.ts.userList,
 	never: i18n.ts.none,
 };
 
@@ -73,20 +63,10 @@ const {
 		label: notificationConfigTypesI18nMap[t],
 		value: t,
 	}))),
-	initialValue: props.value.type,
-});
-const {
-	model: userListId,
-	def: userListIdDef,
-} = useMkSelect({
-	items: computed(() => props.userLists.map(list => ({
-		label: list.name,
-		value: list.id,
-	}))),
-	initialValue: props.value.type === 'list' ? props.value.userListId : null,
+	initialValue: props.value.type === 'list' ? 'never' : props.value.type,
 });
 
 function save() {
-	emit('update', type.value === 'list' ? { type: type.value, userListId: userListId.value! } : { type: type.value });
+	emit('update', { type: type.value });
 }
 </script>

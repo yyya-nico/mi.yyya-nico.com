@@ -23,18 +23,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 			</SearchMarker>
 
-			<SearchMarker :keywords="['favorite', 'notes']">
-				<MkFolder>
-					<template #icon><i class="ti ti-star"></i></template>
-					<template #label><SearchLabel>{{ i18n.ts._exportOrImport.favoritedNotes }}</SearchLabel></template>
-					<MkFolder :defaultOpen="true">
-						<template #label>{{ i18n.ts.export }}</template>
-						<template #icon><i class="ti ti-download"></i></template>
-						<MkButton primary :class="$style.button" inline @click="exportFavorites()"><i class="ti ti-download"></i> {{ i18n.ts.export }}</MkButton>
-					</MkFolder>
-				</MkFolder>
-			</SearchMarker>
-
 			<SearchMarker :keywords="['clip', 'notes']">
 				<MkFolder>
 					<template #icon><i class="ti ti-star"></i></template>
@@ -72,25 +60,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								{{ i18n.ts._exportOrImport.withReplies }}
 							</MkSwitch>
 							<MkButton primary :class="$style.button" inline @click="importFollowing($event)"><i class="ti ti-upload"></i> {{ i18n.ts.import }}</MkButton>
-						</MkFolder>
-					</div>
-				</MkFolder>
-			</SearchMarker>
-
-			<SearchMarker :keywords="['user', 'lists']">
-				<MkFolder>
-					<template #icon><i class="ti ti-users"></i></template>
-					<template #label><SearchLabel>{{ i18n.ts._exportOrImport.userLists }}</SearchLabel></template>
-					<div class="_gaps_s">
-						<MkFolder :defaultOpen="true">
-							<template #label>{{ i18n.ts.export }}</template>
-							<template #icon><i class="ti ti-download"></i></template>
-							<MkButton primary :class="$style.button" inline @click="exportUserLists()"><i class="ti ti-download"></i> {{ i18n.ts.export }}</MkButton>
-						</MkFolder>
-						<MkFolder v-if="$i && !$i.movedTo && $i.policies.canImportUserLists" :defaultOpen="true">
-							<template #label>{{ i18n.ts.import }}</template>
-							<template #icon><i class="ti ti-upload"></i></template>
-							<MkButton primary :class="$style.button" inline @click="importUserLists($event)"><i class="ti ti-upload"></i> {{ i18n.ts.import }}</MkButton>
 						</MkFolder>
 					</div>
 				</MkFolder>
@@ -134,24 +103,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 			</SearchMarker>
 
-			<SearchMarker :keywords="['antennas']">
-				<MkFolder>
-					<template #icon><i class="ti ti-antenna"></i></template>
-					<template #label><SearchLabel>{{ i18n.ts.antennas }}</SearchLabel></template>
-					<div class="_gaps_s">
-						<MkFolder :defaultOpen="true">
-							<template #label>{{ i18n.ts.export }}</template>
-							<template #icon><i class="ti ti-download"></i></template>
-							<MkButton primary :class="$style.button" inline @click="exportAntennas()"><i class="ti ti-download"></i> {{ i18n.ts.export }}</MkButton>
-						</MkFolder>
-						<MkFolder v-if="$i && !$i.movedTo && $i.policies.canImportAntennas" :defaultOpen="true">
-							<template #label>{{ i18n.ts.import }}</template>
-							<template #icon><i class="ti ti-upload"></i></template>
-							<MkButton primary :class="$style.button" inline @click="importAntennas($event)"><i class="ti ti-upload"></i> {{ i18n.ts.import }}</MkButton>
-						</MkFolder>
-					</div>
-				</MkFolder>
-			</SearchMarker>
 		</div>
 	</div>
 </SearchMarker>
@@ -200,10 +151,6 @@ const exportNotes = () => {
 	misskeyApi('i/export-notes', {}).then(onExportSuccess).catch(onError);
 };
 
-const exportFavorites = () => {
-	misskeyApi('i/export-favorites', {}).then(onExportSuccess).catch(onError);
-};
-
 const exportClips = () => {
 	misskeyApi('i/export-clips', {}).then(onExportSuccess).catch(onError);
 };
@@ -220,16 +167,8 @@ const exportBlocking = () => {
 	misskeyApi('i/export-blocking', {}).then(onExportSuccess).catch(onError);
 };
 
-const exportUserLists = () => {
-	misskeyApi('i/export-user-lists', {}).then(onExportSuccess).catch(onError);
-};
-
 const exportMuting = () => {
 	misskeyApi('i/export-mute', {}).then(onExportSuccess).catch(onError);
-};
-
-const exportAntennas = () => {
-	misskeyApi('i/export-antennas', {}).then(onExportSuccess).catch(onError);
 };
 
 const importFollowing = async (ev: PointerEvent) => {
@@ -241,14 +180,6 @@ const importFollowing = async (ev: PointerEvent) => {
 		fileId: file.id,
 		withReplies: withReplies.value,
 	}).then(onImportSuccess).catch(onError);
-};
-
-const importUserLists = async (ev: PointerEvent) => {
-	const file = await selectFile({
-		anchorElement: ev.currentTarget ?? ev.target,
-		multiple: false,
-	});
-	misskeyApi('i/import-user-lists', { fileId: file.id }).then(onImportSuccess).catch(onError);
 };
 
 const importMuting = async (ev: PointerEvent) => {
@@ -265,14 +196,6 @@ const importBlocking = async (ev: PointerEvent) => {
 		multiple: false,
 	});
 	misskeyApi('i/import-blocking', { fileId: file.id }).then(onImportSuccess).catch(onError);
-};
-
-const importAntennas = async (ev: PointerEvent) => {
-	const file = await selectFile({
-		anchorElement: ev.currentTarget ?? ev.target,
-		multiple: false,
-	});
-	misskeyApi('i/import-antennas', { fileId: file.id }).then(onImportSuccess).catch(onError);
 };
 
 const headerActions = computed(() => []);

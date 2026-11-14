@@ -5,10 +5,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_gaps_m">
-	<MkFolder v-for="x in statusbars" :key="x.id">
+	<MkFolder v-for="x in statusbars.filter(x => x.type !== 'rss' && x.type !== 'userList')" :key="x.id">
 		<template #label>{{ x.type ?? i18n.ts.notSet }}</template>
 		<template #suffix>{{ x.name }}</template>
-		<XStatusbar :_id="x.id" :userLists="userLists"/>
+		<XStatusbar :_id="x.id" />
 	</MkFolder>
 	<MkButton primary @click="add">{{ i18n.ts.add }}</MkButton>
 </div>
@@ -27,14 +27,6 @@ import { definePage } from '@/page.js';
 import { prefer } from '@/preferences.js';
 
 const statusbars = prefer.r.statusbars;
-
-const userLists = ref<Misskey.entities.UserList[] | null>(null);
-
-onMounted(() => {
-	misskeyApi('users/lists/list').then(res => {
-		userLists.value = res;
-	});
-});
 
 async function add() {
 	prefer.commit('statusbars', [...statusbars.value, {

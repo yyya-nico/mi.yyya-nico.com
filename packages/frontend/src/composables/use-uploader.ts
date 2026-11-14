@@ -7,10 +7,8 @@ import * as Misskey from 'misskey-js';
 import { readAndCompressImage } from '@misskey-dev/browser-image-resizer';
 import isAnimated from 'is-file-animated';
 import { EventEmitter } from 'eventemitter3';
-import { computed, markRaw, onMounted, onUnmounted, ref, triggerRef } from 'vue';
+import { computed, markRaw, onUnmounted, ref, triggerRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
-import type { WatermarkLayers, WatermarkPreset } from '@/utility/watermark/WatermarkRenderer.js';
-import type { ImageFrameParams, ImageFramePreset } from '@/utility/image-frame-renderer/ImageFrameRenderer.js';
 import { genId } from '@/utility/id.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
@@ -19,12 +17,6 @@ import { uploadFile, UploadAbortedError } from '@/utility/drive.js';
 import type { Content } from '@/components/MkLightbox.item.vue';
 import * as os from '@/os.js';
 import { isPreviewable, getType } from '@/utility/lightbox.js';
-import { ensureSignin } from '@/i.js';
-
-export type UploaderFeatures = {
-	imageEditing?: boolean;
-	watermark?: boolean;
-};
 
 const THUMBNAIL_SUPPORTED_TYPES = [
 	'image/jpeg',
@@ -34,7 +26,7 @@ const THUMBNAIL_SUPPORTED_TYPES = [
 	'image/gif',
 ];
 
-const IMAGE_EDITING_SUPPORTED_TYPES = [
+const IMAGE_COMPRESSION_SUPPORTED_TYPES = [
 	'image/jpeg',
 	'image/png',
 	'image/webp',
@@ -47,7 +39,7 @@ const VIDEO_COMPRESSION_SUPPORTED_TYPES = [ // TODO
 ];
 
 const IMAGE_PREPROCESS_NEEDED_TYPES = [
-	...IMAGE_EDITING_SUPPORTED_TYPES,
+	...IMAGE_COMPRESSION_SUPPORTED_TYPES,
 ];
 
 const VIDEO_PREPROCESS_NEEDED_TYPES = [
@@ -77,9 +69,6 @@ export type UploaderItem = {
 	preprocessedFile?: Blob | null;
 	file: File;
 	objectUrl: string;
-	watermarkPreset: WatermarkPreset | null;
-	watermarkLayers: WatermarkLayers | null;
-	imageFrameParams: ImageFrameParams | null;
 	isSensitive?: boolean;
 	caption?: string | null;
 	abort?: (() => void) | null;
@@ -114,20 +103,10 @@ function getCompressionSettings(level: 0 | 1 | 2 | 3) {
 export function useUploader(options: {
 	folderId?: string | null;
 	multiple?: boolean;
-	features?: UploaderFeatures;
 } = {}) {
-	const $i = ensureSignin();
-
 	const events = new EventEmitter<{
 		'itemUploaded': (ctx: { item: UploaderItem; }) => void;
 	}>();
-
-	const uploaderFeatures = computed<Required<UploaderFeatures>>(() => {
-		return {
-			imageEditing: options.features?.imageEditing ?? true,
-			watermark: options.features?.watermark ?? true,
-		};
-	});
 
 	const items = ref<UploaderItem[]>([]);
 
@@ -135,7 +114,6 @@ export function useUploader(options: {
 		const id = genId();
 		const filename = file.name ?? 'untitled';
 		const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
-		const watermarkPreset = uploaderFeatures.value.watermark && $i.policies.watermarkAvailable ? (prefer.s.watermarkPresets.find(p => p.id === prefer.s.defaultWatermarkPresetId) ?? null) : null;
 		const objectUrl = window.URL.createObjectURL(file);
 		items.value.push({
 			id,
@@ -149,10 +127,7 @@ export function useUploader(options: {
 			aborted: false,
 			uploaded: null,
 			uploadFailed: false,
-			compressionLevel: IMAGE_EDITING_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
-			watermarkPreset,
-			watermarkLayers: watermarkPreset?.layers ?? null,
-			imageFrameParams: null,
+			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
 			file: markRaw(file),
 			objectUrl,
 		});
@@ -269,188 +244,7 @@ export function useUploader(options: {
 		}
 
 		if (
-			uploaderFeatures.value.imageEditing &&
-			IMAGE_EDITING_SUPPORTED_TYPES.includes(item.file.type) &&
-			!item.preprocessing &&
-			!item.uploading &&
-			!item.uploaded
-		) {
-			menu.push({
-				type: 'parent',
-				icon: 'ti ti-photo-edit',
-				text: i18n.ts._uploader.editImage,
-				children: [{
-					icon: 'ti ti-crop',
-					text: i18n.ts.cropImage,
-					action: async () => {
-						const cropped = await os.cropImageFile(item.file, { aspectRatio: null });
-						const newObjectUrl = createItemObjectUrl(item, cropped);
-						items.value.splice(items.value.indexOf(item), 1, {
-							...item,
-							file: markRaw(cropped),
-							thumbnail: THUMBNAIL_SUPPORTED_TYPES.includes(cropped.type) ? newObjectUrl : null,
-							objectUrl: newObjectUrl,
-						});
-						const reactiveItem = items.value.find(x => x.id === item.id)!;
-						preprocess(reactiveItem).then(() => {
-							triggerRef(items);
-						});
-					},
-				}, /*{
-					icon: 'ti ti-resize',
-					text: i18n.ts.resize,
-					action: async () => {
-						// TODO
-					},
-				},*/ {
-					icon: 'ti ti-sparkles',
-					text: i18n.ts._imageEffector.title,
-					action: async () => {
-						const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImageEffectorDialog.vue').then(x => x.default), {
-							image: item.file,
-						}, {
-							ok: (file) => {
-									const newObjectUrl = createItemObjectUrl(item, file);
-								items.value.splice(items.value.indexOf(item), 1, {
-									...item,
-									file: markRaw(file),
-									thumbnail: THUMBNAIL_SUPPORTED_TYPES.includes(file.type) ? newObjectUrl : null,
-									objectUrl: newObjectUrl,
-								});
-								const reactiveItem = items.value.find(x => x.id === item.id)!;
-								preprocess(reactiveItem).then(() => {
-									triggerRef(items);
-								});
-							},
-							closed: () => dispose(),
-						});
-					},
-				}],
-			});
-		}
-
-		if (
-			uploaderFeatures.value.watermark &&
-			$i.policies.watermarkAvailable &&
-			IMAGE_EDITING_SUPPORTED_TYPES.includes(item.file.type) &&
-			!item.preprocessing &&
-			!item.uploading &&
-			!item.uploaded
-		) {
-			function change(layers: WatermarkLayers | null, preset?: WatermarkPreset | null) {
-				item.watermarkPreset = preset ?? null;
-				item.watermarkLayers = layers;
-				preprocess(item).then(() => {
-					triggerRef(items);
-				});
-			}
-
-			menu.push({
-				icon: 'ti ti-copyright',
-				text: i18n.ts.watermark,
-				caption: computed(() => item.watermarkPreset != null ? item.watermarkPreset.name : item.watermarkLayers != null ? i18n.ts.custom : null),
-				type: 'parent',
-				children: [{
-					type: 'button' as const,
-					icon: 'ti ti-pencil',
-					text: i18n.ts.edit,
-					action: async () => {
-						const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkWatermarkEditorDialog.vue').then(x => x.default), {
-							layers: item.watermarkLayers,
-							image: item.file,
-						}, {
-							ok: (layers) => {
-								change(layers);
-							},
-							closed: () => dispose(),
-						});
-					},
-				}, {
-					type: 'button' as const,
-					icon: 'ti ti-x',
-					text: i18n.ts.remove,
-					action: () => change(null),
-				}, {
-					type: 'divider',
-				}, {
-					type: 'label',
-					text: i18n.ts.presets,
-				}, ...prefer.s.watermarkPresets.map(preset => ({
-					type: 'radioOption' as const,
-					text: preset.name,
-					active: computed(() => item.watermarkPreset?.id === preset.id),
-					action: () => change(preset.layers, preset),
-				}))],
-			});
-		}
-
-		if (
-			uploaderFeatures.value.imageEditing &&
-			IMAGE_EDITING_SUPPORTED_TYPES.includes(item.file.type) &&
-			!item.preprocessing &&
-			!item.uploading &&
-			!item.uploaded
-		) {
-			function change(params: ImageFrameParams | null) {
-				item.imageFrameParams = params;
-				preprocess(item).then(() => {
-					triggerRef(items);
-				});
-			}
-
-			menu.push({
-				icon: 'ti ti-device-ipad-horizontal',
-				text: i18n.ts.frame,
-				type: 'parent' as const,
-				children: [{
-					type: 'button' as const,
-					icon: 'ti ti-pencil',
-					text: i18n.ts.edit,
-					action: async () => {
-						const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImageFrameEditorDialog.vue').then(x => x.default), {
-							params: item.imageFrameParams,
-							image: item.file,
-							imageCaption: item.caption ?? null,
-							imageFilename: item.name,
-						}, {
-							ok: (params) => {
-								change(params);
-							},
-							closed: () => dispose(),
-						});
-					},
-				}, ...(item.imageFrameParams != null ? [{
-					type: 'button' as const,
-					icon: 'ti ti-x',
-					text: i18n.ts.remove,
-					action: () => change(null),
-				}] : []), {
-					type: 'divider' as const,
-				}, {
-					type: 'label' as const,
-					text: i18n.ts.presets,
-				}, ...prefer.s.imageFramePresets.map(preset => ({
-					type: 'button' as const,
-					text: preset.name,
-					action: async () => {
-						const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImageFrameEditorDialog.vue').then(x => x.default), {
-							params: preset.params,
-							image: item.file,
-							imageCaption: item.caption ?? null,
-							imageFilename: item.name,
-						}, {
-							ok: (params) => {
-								change(params);
-							},
-							closed: () => dispose(),
-						});
-					},
-				}))],
-			});
-		}
-
-		if (
-			(IMAGE_EDITING_SUPPORTED_TYPES.includes(item.file.type) || VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type)) &&
+			(IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type) || VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type)) &&
 			!item.preprocessing &&
 			!item.uploading &&
 			!item.uploaded
@@ -660,63 +454,10 @@ export function useUploader(options: {
 	}
 
 	async function preprocessForImage(item: UploaderItem): Promise<void> {
-		const imageBitmap = await window.createImageBitmap(item.file);
-
 		let preprocessedFile: Blob | File = item.file;
 
-		const needsWatermark = item.watermarkLayers != null && IMAGE_EDITING_SUPPORTED_TYPES.includes(preprocessedFile.type) && $i.policies.watermarkAvailable;
-		if (needsWatermark && item.watermarkLayers != null) {
-			const canvas = window.document.createElement('canvas');
-			const WatermarkRenderer = await import('@/utility/watermark/WatermarkRenderer.js').then(x => x.WatermarkRenderer);
-			const renderer = new WatermarkRenderer({
-				canvas: canvas,
-				renderWidth: imageBitmap.width,
-				renderHeight: imageBitmap.height,
-				image: imageBitmap,
-			});
-
-			await renderer.render(item.watermarkLayers);
-
-			preprocessedFile = await new Promise<Blob>((resolve) => {
-				canvas.toBlob((blob) => {
-					if (blob == null) {
-						throw new Error('Failed to convert canvas to blob');
-					}
-					resolve(blob);
-					renderer.destroy();
-				}, 'image/png');
-			});
-		}
-
-		const needsImageFrame = item.imageFrameParams != null && IMAGE_EDITING_SUPPORTED_TYPES.includes(preprocessedFile.type);
-		if (needsImageFrame && item.imageFrameParams != null) {
-			const canvas = window.document.createElement('canvas');
-			const ExifReader = await import('exifreader');
-			const exif = await ExifReader.load(await item.file.arrayBuffer());
-			const ImageFrameRenderer = await import('@/utility/image-frame-renderer/ImageFrameRenderer.js').then(x => x.ImageFrameRenderer);
-			const frameRenderer = new ImageFrameRenderer({
-				canvas: canvas,
-				image: await window.createImageBitmap(preprocessedFile),
-				exif,
-				caption: item.caption ?? null,
-				filename: item.name,
-			});
-
-			await frameRenderer.render(item.imageFrameParams);
-
-			preprocessedFile = await new Promise<Blob>((resolve) => {
-				canvas.toBlob((blob) => {
-					if (blob == null) {
-						throw new Error('Failed to convert canvas to blob');
-					}
-					resolve(blob);
-					frameRenderer.destroy();
-				}, 'image/png');
-			});
-		}
-
 		const compressionSettings = getCompressionSettings(item.compressionLevel);
-		const needsCompress = item.compressionLevel !== 0 && compressionSettings && IMAGE_EDITING_SUPPORTED_TYPES.includes(preprocessedFile.type) && !(await isAnimated(preprocessedFile));
+		const needsCompress = item.compressionLevel !== 0 && compressionSettings && IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(preprocessedFile.type) && !(await isAnimated(preprocessedFile));
 
 		if (needsCompress) {
 			const config = {
@@ -742,8 +483,6 @@ export function useUploader(options: {
 			item.compressedSize = null;
 			item.suffix = '';
 		}
-
-		imageBitmap.close();
 
 		updateItemObjectUrls(item, preprocessedFile);
 		item.preprocessedFile = markRaw(preprocessedFile);

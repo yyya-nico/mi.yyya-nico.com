@@ -26,12 +26,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</button>
 
-	<button :class="$style.item" class="_button" @click="widgetsShowing = true">
-		<div :class="$style.itemInner">
-			<i :class="$style.itemIcon" class="ti ti-apps"></i>
-		</div>
-	</button>
-
 	<button :class="[$style.item, $style.post]" class="_button" @click="os.post()">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-pencil"></i>
@@ -48,7 +42,6 @@ import { mainRouter } from '@/router.js';
 import { navbarItemDef } from '@/navbar.js';
 
 const drawerMenuShowing = defineModel<boolean>('drawerMenuShowing');
-const widgetsShowing = defineModel<boolean>('widgetsShowing');
 
 const rootEl = useTemplateRef('rootEl');
 
@@ -81,7 +74,7 @@ watch(rootEl, () => {
 	z-index: 1;
 	padding-bottom: env(safe-area-inset-bottom, 0px);
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
 	width: 100%;
 	box-sizing: border-box;
 	background: var(--MI_THEME-navBg);

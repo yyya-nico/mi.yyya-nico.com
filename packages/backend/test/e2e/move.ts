@@ -167,18 +167,9 @@ describe('Account Move', () => {
 	});
 
 	describe('Local to Local', () => {
-		let antennaId = '';
-
 		beforeAll(async () => {
 			await api('i/update', {
 				alsoKnownAs: [`@alice@${url.hostname}`],
-			}, root);
-			const listRoot = await api('users/lists/create', {
-				name: secureRndstr(8),
-			}, root);
-			await api('users/lists/push', {
-				listId: listRoot.body.id,
-				userId: alice.id,
 			}, root);
 
 			await api('following/create', {
@@ -187,18 +178,6 @@ describe('Account Move', () => {
 			await api('following/create', {
 				userId: eve.id,
 			}, alice);
-			const antenna = await api('antennas/create', {
-				name: secureRndstr(8),
-				src: 'home',
-				keywords: [[secureRndstr(8)]],
-				excludeKeywords: [],
-				users: [],
-				caseSensitive: false,
-				localOnly: false,
-				withReplies: false,
-				withFile: false,
-			}, alice);
-			antennaId = antenna.body.id;
 
 			await api('i/update', {
 				alsoKnownAs: [`@alice@${url.hostname}`],
@@ -220,13 +199,6 @@ describe('Account Move', () => {
 
 			await api('following/create', {
 				userId: dave.id,
-			}, eve);
-			const listEve = await api('users/lists/create', {
-				name: secureRndstr(8),
-			}, eve);
-			await api('users/lists/push', {
-				listId: listEve.body.id,
-				userId: bob.id,
 			}, eve);
 
 			await api('i/update', {
@@ -315,25 +287,6 @@ describe('Account Move', () => {
 				assert.strictEqual(mutings.body[0].muteeId, bob.id);
 				assert.strictEqual(mutings.body[1].muteeId, alice.id);
 			}, waitForMoveJobOptions);
-
-			await vi.waitFor(async () => {
-				const rootLists = await api('users/lists/list', {}, root);
-				assert.strictEqual(rootLists.status, 200);
-				assert.ok(rootLists);
-				assert.ok(rootLists.body[0].userIds);
-				assert.strictEqual(rootLists.body[0].userIds.length, 2);
-				assert.ok(rootLists.body[0].userIds.find((id: string) => id === bob.id));
-				assert.ok(rootLists.body[0].userIds.find((id: string) => id === alice.id));
-			}, waitForMoveJobOptions);
-
-			await vi.waitFor(async () => {
-				const eveLists = await api('users/lists/list', {}, eve);
-				assert.strictEqual(eveLists.status, 200);
-				assert.ok(eveLists);
-				assert.ok(eveLists.body[0].userIds);
-				assert.strictEqual(eveLists.body[0].userIds.length, 1);
-				assert.ok(eveLists.body[0].userIds.find((id: string) => id === bob.id));
-			}, waitForMoveJobOptions);
 		});
 
 		test('A locked account automatically accept the follow request if it had already accepted the old account.', async () => {
@@ -396,71 +349,26 @@ describe('Account Move', () => {
 			assert.strictEqual(newEve.followersCount, 1);
 		});
 
-		test.each([
-			'antennas/create',
-			'channels/create',
-			'channels/favorite',
-			'channels/follow',
-			'channels/unfavorite',
-			'channels/unfollow',
-			'clips/add-note',
-			'clips/create',
-			'clips/favorite',
-			'clips/remove-note',
-			'clips/unfavorite',
-			'clips/update',
-			'drive/files/upload-from-url',
-			'flash/create',
-			'flash/like',
-			'flash/unlike',
-			'flash/update',
-			'following/create',
-			'gallery/posts/create',
-			'gallery/posts/like',
-			'gallery/posts/unlike',
-			'gallery/posts/update',
-			'i/claim-achievement',
-			'i/move',
-			'i/import-blocking',
-			'i/import-following',
-			'i/import-muting',
-			'i/import-user-lists',
-			'i/pin',
-			'mute/create',
-			'notes/create',
-			'notes/favorites/create',
-			'notes/polls/vote',
-			'notes/reactions/create',
-			'pages/create',
-			'pages/like',
-			'pages/unlike',
-			'pages/update',
-			'renote-mute/create',
-			'users/lists/create',
-			'users/lists/pull',
-			'users/lists/push',
+		test.each(['clips/add-note',
+'clips/create',
+'clips/favorite',
+'clips/remove-note',
+'clips/unfavorite',
+'clips/update',
+'drive/files/upload-from-url',
+'following/create',
+'i/move',
+'i/import-blocking',
+'i/import-following',
+'i/import-muting',
+'i/pin',
+'mute/create',
+'notes/create',
+'notes/polls/vote',
+'notes/reactions/create',
+'renote-mute/create'
 		] as const)('Prohibit access after moving: %s', async (endpoint) => {
 			const res = await api(endpoint, {}, alice);
-			assert.strictEqual(res.status, 403);
-			assert.ok(res.body);
-			assert.strictEqual(castAsError(res.body).error.code, 'YOUR_ACCOUNT_MOVED');
-			assert.strictEqual(castAsError(res.body).error.id, '56f20ec9-fd06-4fa5-841b-edd6d7d4fa31');
-		});
-
-		test('Prohibit access after moving: /antennas/update', async () => {
-			const res = await api('antennas/update', {
-				antennaId,
-				name: secureRndstr(8),
-				src: 'users',
-				keywords: [[secureRndstr(8)]],
-				excludeKeywords: [],
-				users: [eve.id],
-				caseSensitive: false,
-				localOnly: false,
-				withReplies: false,
-				withFile: false,
-			}, alice);
-
 			assert.strictEqual(res.status, 403);
 			assert.ok(res.body);
 			assert.strictEqual(castAsError(res.body).error.code, 'YOUR_ACCOUNT_MOVED');

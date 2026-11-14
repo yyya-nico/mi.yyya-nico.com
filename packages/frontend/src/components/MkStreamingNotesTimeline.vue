@@ -106,14 +106,7 @@ provide(DI.inChannel, computed(() => props.src === 'channel' ? props.channel ?? 
 
 let paginator: IPaginator<Misskey.entities.Note>;
 
-if (props.src === 'antenna') {
-	paginator = markRaw(new Paginator('antennas/notes', {
-		computedParams: computed(() => ({
-			antennaId: props.antenna!,
-		})),
-		useShallowRef: true,
-	}));
-} else if (props.src === 'home') {
+if (props.src === 'home') {
 	paginator = markRaw(new Paginator('notes/timeline', {
 		computedParams: computed(() => ({
 			withRenotes: props.withRenotes,
@@ -156,22 +149,6 @@ if (props.src === 'antenna') {
 		params: {
 			visibility: 'specified',
 		},
-		useShallowRef: true,
-	}));
-} else if (props.src === 'list') {
-	paginator = markRaw(new Paginator('notes/user-list-timeline', {
-		computedParams: computed(() => ({
-			withRenotes: props.withRenotes,
-			withFiles: props.onlyFiles ? true : undefined,
-			listId: props.list!,
-		})),
-		useShallowRef: true,
-	}));
-} else if (props.src === 'channel') {
-	paginator = markRaw(new Paginator('channels/timeline', {
-		computedParams: computed(() => ({
-			channelId: props.channel!,
-		})),
 		useShallowRef: true,
 	}));
 } else if (props.src === 'role') {
@@ -307,26 +284,17 @@ function prepend(note: Misskey.entities.Note & MisskeyEntity) {
 const stream = store.s.realtimeMode ? useStream() : null;
 
 const connections = {
-	antenna: null as Misskey.IChannelConnection<Misskey.Channels['antenna']> | null,
 	homeTimeline: null as Misskey.IChannelConnection<Misskey.Channels['homeTimeline']> | null,
 	localTimeline: null as Misskey.IChannelConnection<Misskey.Channels['localTimeline']> | null,
 	hybridTimeline: null as Misskey.IChannelConnection<Misskey.Channels['hybridTimeline']> | null,
 	globalTimeline: null as Misskey.IChannelConnection<Misskey.Channels['globalTimeline']> | null,
 	main: null as Misskey.IChannelConnection<Misskey.Channels['main']> | null,
-	userList: null as Misskey.IChannelConnection<Misskey.Channels['userList']> | null,
-	channel: null as Misskey.IChannelConnection<Misskey.Channels['channel']> | null,
 	roleTimeline: null as Misskey.IChannelConnection<Misskey.Channels['roleTimeline']> | null,
 };
 
 function connectChannel() {
 	if (stream == null) return;
-	if (props.src === 'antenna') {
-		if (props.antenna == null) return;
-		connections.antenna = stream.useChannel('antenna', {
-			antennaId: props.antenna,
-		});
-		connections.antenna.on('note', prepend);
-	} else if (props.src === 'home') {
+	if (props.src === 'home') {
 		connections.homeTimeline = stream.useChannel('homeTimeline', {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
@@ -363,20 +331,6 @@ function connectChannel() {
 				prepend(note);
 			}
 		});
-	} else if (props.src === 'list') {
-		if (props.list == null) return;
-		connections.userList = stream.useChannel('userList', {
-			withRenotes: props.withRenotes,
-			withFiles: props.onlyFiles ? true : undefined,
-			listId: props.list,
-		});
-		connections.userList.on('note', prepend);
-	} else if (props.src === 'channel') {
-		if (props.channel == null) return;
-		connections.channel = stream.useChannel('channel', {
-			channelId: props.channel,
-		});
-		connections.channel.on('note', prepend);
 	} else if (props.src === 'role') {
 		if (props.role == null) return;
 		connections.roleTimeline = stream.useChannel('roleTimeline', {

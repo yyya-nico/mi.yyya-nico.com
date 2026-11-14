@@ -44,14 +44,10 @@ export type Channels = {
 			followed: (payload: UserDetailed | UserLite) => void; // 他人が自分をフォローしたとき
 			unfollow: (payload: UserDetailed) => void; // 自分が他人をフォロー解除したとき
 			meUpdated: (payload: UserDetailed) => void;
-			pageEvent: (payload: PageEvent) => void;
 			urlUploadFinished: (payload: { marker: string; file: DriveFile; }) => void;
 			readAllNotifications: () => void;
 			unreadNotification: (payload: Notification) => void;
 			notificationFlushed: () => void;
-			unreadAntenna: (payload: Antenna) => void;
-			newChatMessage: (payload: ChatMessage) => void;
-			readAllAnnouncements: () => void;
 			myTokenRegenerated: () => void;
 			signin: (payload: Signin) => void;
 			registryUpdated: (payload: {
@@ -61,9 +57,7 @@ export type Channels = {
 				value: any | null;
 			}) => void;
 			driveFileCreated: (payload: DriveFile) => void;
-			readAntenna: (payload: Antenna) => void;
 			receiveFollowRequest: (payload: User) => void;
-			announcementCreated: (payload: AnnouncementCreated) => void;
 		};
 		receives: null;
 	};
@@ -109,17 +103,6 @@ export type Channels = {
 		};
 		receives: null;
 	};
-	userList: {
-		params: {
-			listId: string;
-			withFiles?: boolean;
-			withRenotes?: boolean;
-		};
-		events: {
-			note: (payload: Note) => void;
-		};
-		receives: null;
-	};
 	hashtag: {
 		params: {
 			q: string[][];
@@ -132,24 +115,6 @@ export type Channels = {
 	roleTimeline: {
 		params: {
 			roleId: string;
-		};
-		events: {
-			note: (payload: Note) => void;
-		};
-		receives: null;
-	};
-	antenna: {
-		params: {
-			antennaId: string;
-		};
-		events: {
-			note: (payload: Note) => void;
-		};
-		receives: null;
-	};
-	channel: {
-		params: {
-			channelId: string;
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -216,90 +181,6 @@ export type Channels = {
 		};
 		receives: null;
 	};
-	reversi: {
-		params: null;
-		events: {
-			matched: (payload: { game: ReversiGameDetailed }) => void;
-			invited: (payload: { user: User }) => void;
-		};
-		receives: null;
-	};
-	reversiGame: {
-		params: {
-			gameId: string;
-		};
-		events: {
-			started: (payload: { game: ReversiGameDetailed; }) => void;
-			ended: (payload: { winnerId: User['id'] | null; game: ReversiGameDetailed; }) => void;
-			canceled: (payload: { userId: User['id']; }) => void;
-			changeReadyStates: (payload: { user1: boolean; user2: boolean; }) => void;
-			updateSettings: <K extends ReversiUpdateKey>(payload: { userId: User['id']; key: K; value: ReversiGameDetailed[K]; }) => void;
-			log: (payload: {
-				time: number;
-				player: boolean;
-				operation: 'put';
-				pos: number;
-			} & { id: string | null }) => void;
-		};
-		receives: {
-			putStone: {
-				pos: number;
-				id: string;
-			};
-			ready: boolean;
-			cancel: null | Record<string, never>;
-			updateSettings: ReversiUpdateSettings<ReversiUpdateKey>;
-			claimTimeIsUp: null | Record<string, never>;
-		}
-	};
-	chatUser: {
-		params: {
-			otherId: string;
-		};
-		events: {
-			message: (payload: ChatMessageLite) => void;
-			deleted: (payload: ChatMessageLite['id']) => void;
-			react: (payload: {
-				reaction: string;
-				user?: UserLite;
-				messageId: ChatMessageLite['id'];
-			}) => void;
-			unreact: (payload: {
-				reaction: string;
-				user?: UserLite;
-				messageId: ChatMessageLite['id'];
-			}) => void;
-		};
-		receives: {
-			read: {
-				id: ChatMessageLite['id'];
-			};
-		};
-	};
-	chatRoom: {
-		params: {
-			roomId: string;
-		};
-		events: {
-			message: (payload: ChatMessageLite) => void;
-			deleted: (payload: ChatMessageLite['id']) => void;
-			react: (payload: {
-				reaction: string;
-				user?: UserLite;
-				messageId: ChatMessageLite['id'];
-			}) => void;
-			unreact: (payload: {
-				reaction: string;
-				user?: UserLite;
-				messageId: ChatMessageLite['id'];
-			}) => void;
-		};
-		receives: {
-			read: {
-				id: ChatMessageLite['id'];
-			};
-		};
-	};
 };
 
 export type NoteUpdatedEvent = { id: Note['id'] } & ({
@@ -336,5 +217,4 @@ export type BroadcastEvents = {
 	emojiAdded: (payload: EmojiAdded) => void;
 	emojiUpdated: (payload: EmojiUpdated) => void;
 	emojiDeleted: (payload: EmojiDeleted) => void;
-	announcementCreated: (payload: AnnouncementCreated) => void;
 };

@@ -24,21 +24,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 	</div>
-	<template v-if="showDecoration">
-		<img
-			v-for="decoration in decorations ?? user.avatarDecorations"
-			:class="[$style.decoration, { [$style.decorationBlink]: getDecorationIsBrink(decoration) }]"
-			:src="getDecorationUrl(decoration)"
-			:style="{
-				rotate: getDecorationAngle(decoration),
-				scale: getDecorationScale(decoration),
-				translate: getDecorationOffset(decoration),
-			}"
-			alt=""
-			draggable="false"
-			style="-webkit-user-drag: none;"
-		>
-	</template>
 </component>
 </template>
 
@@ -79,8 +64,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	(ev: 'click', v: PointerEvent): void;
 }>();
-
-const showDecoration = props.forceShowDecoration || prefer.s.showAvatarDecorations;
 
 const bound = computed(() => props.link
 	? { to: userPage(props.user), target: props.target }

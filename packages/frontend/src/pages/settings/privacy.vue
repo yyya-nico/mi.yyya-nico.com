@@ -112,22 +112,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkSwitch>
 		</SearchMarker>
 
-		<SearchMarker :keywords="['chat']">
-			<FormSection>
-				<template #label><SearchLabel>{{ i18n.ts.directMessage }}</SearchLabel></template>
-
-				<div class="_gaps_m">
-					<MkInfo v-if="$i.policies.chatAvailability === 'unavailable'">{{ i18n.ts._chat.chatNotAvailableForThisAccountOrServer }}</MkInfo>
-					<SearchMarker :keywords="['chat']">
-						<MkSelect v-model="chatScope" :items="chatScopeDef" @update:modelValue="save()">
-							<template #label><SearchLabel>{{ i18n.ts._chat.chatAllowedUsers }}</SearchLabel></template>
-							<template #caption>{{ i18n.ts._chat.chatAllowedUsers_note }}</template>
-						</MkSelect>
-					</SearchMarker>
-				</div>
-			</FormSection>
-		</SearchMarker>
-
 		<SearchMarker :keywords="['lockdown']">
 			<FormSection>
 				<template #label><SearchLabel>{{ i18n.ts.lockdown }}</SearchLabel></template>
@@ -525,7 +509,7 @@ function save() {
 		publicReactions: !!publicReactions.value,
 		followingVisibility: followingVisibility.value,
 		followersVisibility: followersVisibility.value,
-		chatScope: chatScope.value,
+		chatScope: 'none',
 	});
 }
 

@@ -69,7 +69,7 @@ describe('HTML descriptions as plain text', () => {
 			mockDeep(), mockDeep(), mockDeep(), mockDeep(), mockDeep(),
 			mockDeep(), mockDeep(), mockDeep(), mockDeep(), mockDeep(),
 			mockDeep(), mockDeep(), mockDeep(), mockDeep(), mockDeep(),
-			mockDeep(), mockDeep(), mockDeep(), mockDeep(), mockDeep(), mockDeep(),
+			mockDeep(), mockDeep(), mockDeep(), mockDeep(), mockDeep(),
 			htmlTemplateService,
 			clientLoggerService,
 		);
@@ -83,6 +83,10 @@ describe('HTML descriptions as plain text', () => {
 			expect(document.querySelector('meta[property="og:description"]')?.getAttribute('content')).toBe(expected ?? defaultDescription);
 			expect(response.body).not.toContain('&lt;span');
 			expect(response.body).not.toContain('&lt;br');
+			for (const extension of ['rss', 'atom', 'json']) {
+				const feed = await server.inject({ method: 'GET', url: `/@alice.${extension}` });
+				expect(feed.statusCode).toBe(404);
+			}
 		} finally {
 			await server.close();
 		}

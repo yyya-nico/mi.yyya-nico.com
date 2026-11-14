@@ -83,6 +83,8 @@ export class NotificationService implements OnApplicationShutdown {
 		data: Omit<FilterUnionByProperty<MiNotification, 'type', T>, 'type' | 'id' | 'createdAt' | 'notifierId'>,
 		notifierId?: MiUser['id'] | null,
 	) {
+		if (type === 'achievementEarned' || type === 'chatRoomInvitationReceived') return;
+
 		trackPromise(
 			this.#createNotificationInternal(notifieeId, type, data, notifierId),
 		);
@@ -140,10 +142,7 @@ export class NotificationService implements OnApplicationShutdown {
 					return null;
 				}
 			} else if (recieveConfig?.type === 'list') {
-				const isMember = await this.userListService.membersCache.fetch(recieveConfig.userListId).then(members => members.has(notifierId));
-				if (!isMember) {
-					return null;
-				}
+				return null;
 			}
 		}
 
@@ -298,6 +297,7 @@ export class NotificationService implements OnApplicationShutdown {
 			}
 
 			notifications = notificationsRes.map(x => JSON.parse(x[1][1])) as MiNotification[];
+			notifications = notifications.filter(notification => notification.type !== 'achievementEarned' && notification.type !== 'chatRoomInvitationReceived');
 
 			if (includeTypes && includeTypes.length > 0) {
 				notifications = notifications.filter(notification => includeTypes.includes(notification.type));

@@ -6,7 +6,6 @@
 import { defineAsyncComponent } from 'vue';
 import * as Misskey from 'misskey-js';
 import { apiUrl } from '@@/js/config.js';
-import type { UploaderFeatures } from '@/composables/use-uploader.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { useStream } from '@/stream.js';
@@ -15,7 +14,6 @@ import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 import { instance } from '@/instance.js';
 import { globalEvents } from '@/events.js';
-import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 import { genId } from '@/utility/id.js';
 
 type UploadReturnType = {
@@ -160,7 +158,6 @@ export function uploadFile(file: File | Blob, options: {
 export function chooseFileFromPcAndUpload(
 	options: {
 		multiple?: boolean;
-		features?: UploaderFeatures;
 		folderId?: string | null;
 	} = {},
 ): Promise<Misskey.entities.DriveFile[]> {
@@ -169,7 +166,6 @@ export function chooseFileFromPcAndUpload(
 			if (files.length === 0) return;
 			os.launchUploader(files, {
 				folderId: options.folderId,
-				features: options.features,
 			}).then(driveFiles => {
 				res(driveFiles);
 			});
@@ -231,7 +227,7 @@ export function chooseFileFromUrl(): Promise<Misskey.entities.DriveFile> {
 	});
 }
 
-function select(anchorElement: HTMLElement | EventTarget | null, label: string | null, multiple: boolean, features?: UploaderFeatures): Promise<Misskey.entities.DriveFile[]> {
+function select(anchorElement: HTMLElement | EventTarget | null, label: string | null, multiple: boolean): Promise<Misskey.entities.DriveFile[]> {
 	return new Promise((res, rej) => {
 		os.popupMenu([label ? {
 			text: label,
@@ -239,7 +235,7 @@ function select(anchorElement: HTMLElement | EventTarget | null, label: string |
 		} : null, {
 			text: i18n.ts.upload,
 			icon: 'ti ti-upload',
-			action: () => chooseFileFromPcAndUpload({ multiple, features }).then(files => res(files)),
+			action: () => chooseFileFromPcAndUpload({ multiple }).then(files => res(files)),
 		}, {
 			text: i18n.ts.fromDrive,
 			icon: 'ti ti-cloud',
@@ -256,51 +252,14 @@ type SelectFileOptions<M extends boolean> = {
 	anchorElement: HTMLElement | EventTarget | null;
 	multiple: M;
 	label?: string | null;
-	features?: UploaderFeatures;
 };
 
 export async function selectFile<
 	M extends boolean,
 	MR extends M extends true ? Misskey.entities.DriveFile[] : Misskey.entities.DriveFile,
 >(opts: SelectFileOptions<M>): Promise<MR> {
-	const files = await select(opts.anchorElement, opts.label ?? null, opts.multiple ?? false, opts.features);
+	const files = await select(opts.anchorElement, opts.label ?? null, opts.multiple ?? false);
 	return opts.multiple ? (files as MR) : (files[0]! as MR);
-}
-
-export async function createCroppedImageDriveFileFromImageDriveFile(imageDriveFile: Misskey.entities.DriveFile, options: {
-	aspectRatio: number | null;
-}): Promise<Misskey.entities.DriveFile> {
-	return new Promise((resolve, reject) => {
-		const imgUrl = getProxiedImageUrl(imageDriveFile.url, undefined, true);
-		const image = new Image();
-		image.src = imgUrl;
-		image.onload = () => {
-			const canvas = window.document.createElement('canvas');
-			const ctx = canvas.getContext('2d')!;
-			canvas.width = image.width;
-			canvas.height = image.height;
-			ctx.drawImage(image, 0, 0);
-			canvas.toBlob(blob => {
-				if (blob == null) {
-					reject();
-					return;
-				}
-
-				os.cropImageFile(blob, {
-					aspectRatio: options.aspectRatio,
-				}).then(croppedImageFile => {
-					const { filePromise } = uploadFile(croppedImageFile, {
-						name: imageDriveFile.name,
-						folderId: imageDriveFile.folderId,
-					});
-
-					filePromise.then(driveFile => {
-						resolve(driveFile);
-					});
-				});
-			});
-		};
-	});
 }
 
 export async function selectDriveFolder(initialFolder: Misskey.entities.DriveFolder['id'] | null): Promise<{

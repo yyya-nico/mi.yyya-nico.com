@@ -68,6 +68,10 @@ export class NoteDraftService {
 			throw new IdentifiableError('9ee33bbe-fde3-4c71-9b51-e50492c6b9c8', 'Too many drafts');
 		}
 
+		if (data.channelId != null) {
+			throw new IdentifiableError('6815399a-6f13-4069-b60d-ed5156249d12', 'Channels have been removed.');
+		}
+
 		if (data.isActuallyScheduled) {
 			const currentScheduledCount = await this.noteDraftsRepository.countBy({
 				userId: me.id,
@@ -105,6 +109,8 @@ export class NoteDraftService {
 			throw new IdentifiableError('49cd6b9d-848e-41ee-b0b9-adaca711a6b1', 'No such note draft');
 		}
 
+		data = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
+
 		//#region check draft limit
 		const policies = await this.roleService.getUserPolicies(me.id);
 
@@ -119,7 +125,7 @@ export class NoteDraftService {
 		}
 		//#endregion
 
-		await this.validate(me, data);
+		await this.validate(me, { ...draft, ...data });
 
 		const updatedDraft = await this.noteDraftsRepository.createQueryBuilder().update()
 			.set(data)
@@ -172,6 +178,10 @@ export class NoteDraftService {
 		me: MiLocalUser,
 		data: Partial<NoteDraftOptions>,
 	): Promise<void> {
+		if (data.channelId != null) {
+			throw new IdentifiableError('6815399a-6f13-4069-b60d-ed5156249d12', 'Channels have been removed.');
+		}
+
 		if (data.isActuallyScheduled) {
 			if (data.scheduledAt == null) {
 				throw new IdentifiableError('94a89a43-3591-400a-9c17-dd166e71fdfa', 'scheduledAt is required when isActuallyScheduled is true');
@@ -246,7 +256,7 @@ export class NoteDraftService {
 				throw new IdentifiableError('81eb8188-aea1-4e35-9a8f-3334a3be9855', 'Cannot Renote Due to Visibility');
 			}
 
-			if (renote.channelId && renote.channelId !== data.channelId) {
+			if (renote.channelId) {
 				// チャンネルのノートに対しリノート要求がきたとき、チャンネル外へのリノート可否をチェック
 				// リノートのユースケースのうち、チャンネル内→チャンネル外は少数だと考えられるため、JOINはせず必要な時に都度取得する
 				const renoteChannel = await this.channelsRepository.findOneBy({ id: renote.channelId });
@@ -266,6 +276,10 @@ export class NoteDraftService {
 		if (data.replyId != null) {
 			// Fetch reply
 			reply = await this.notesRepository.findOneBy({ id: data.replyId });
+
+			if (reply?.channelId != null) {
+				throw new IdentifiableError('6815399a-6f13-4069-b60d-ed5156249d12', 'Channels have been removed.');
+			}
 
 			if (reply == null) {
 				throw new IdentifiableError('c4721841-22fc-4bb7-ad3d-897ef1d375b5', 'No such reply');

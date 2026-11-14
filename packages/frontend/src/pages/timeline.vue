@@ -14,8 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			ref="tlComponent"
 			:key="src + withRenotes + withReplies + onlyFiles + withSensitive"
 			:class="$style.tl"
-			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
-			:list="src.split(':')[1]"
+			:src="src"
 			:withRenotes="withRenotes"
 			:withReplies="withReplies"
 			:withSensitive="withSensitive"
@@ -39,20 +38,18 @@ import { store } from '@/store.js';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/i.js';
 import { definePage } from '@/page.js';
-import { antennasCache, userListsCache, favoritedChannelsCache } from '@/cache.js';
 import { deviceKind } from '@/utility/device-kind.js';
 import { deepMerge } from '@/utility/merge.js';
-import { miLocalStorage } from '@/local-storage.js';
 import { availableBasicTimelines, hasWithReplies, isAvailableBasicTimeline, isBasicTimeline, basicTimelineIconClass } from '@/timelines.js';
 import { prefer } from '@/preferences.js';
 
 const tlComponent = useTemplateRef('tlComponent');
 
-type TimelinePageSrc = BasicTimelineType | `list:${string}`;
+type TimelinePageSrc = BasicTimelineType;
 
 const srcWhenNotSignin = ref<'local' | 'global'>(isAvailableBasicTimeline('local') ? 'local' : 'global');
 const src = computed<TimelinePageSrc>({
-	get: () => ($i ? store.r.tl.value.src : srcWhenNotSignin.value),
+	get: () => ($i ? (isBasicTimeline(store.r.tl.value.src) ? store.r.tl.value.src : 'home') : srcWhenNotSignin.value),
 	set: (x) => saveSrc(x),
 });
 const withRenotes = computed<boolean>({
@@ -106,77 +103,8 @@ const withSensitive = computed<boolean>({
 
 const showFixedPostForm = prefer.model('showFixedPostForm');
 
-async function chooseList(ev: PointerEvent): Promise<void> {
-	const lists = await userListsCache.fetch();
-	const items: (MenuItem | undefined)[] = [
-		...lists.map(list => ({
-			type: 'link' as const,
-			text: list.name,
-			to: `/timeline/list/${list.id}`,
-		})),
-		(lists.length === 0 ? undefined : { type: 'divider' }),
-		{
-			type: 'link' as const,
-			icon: 'ti ti-plus',
-			text: i18n.ts.createNew,
-			to: '/my/lists',
-		},
-	];
-	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);
-}
-
-async function chooseAntenna(ev: PointerEvent): Promise<void> {
-	const antennas = await antennasCache.fetch();
-	const items: (MenuItem | undefined)[] = [
-		...antennas.map(antenna => ({
-			type: 'link' as const,
-			text: antenna.name,
-			indicate: antenna.hasUnreadNote,
-			to: `/timeline/antenna/${antenna.id}`,
-		})),
-		(antennas.length === 0 ? undefined : { type: 'divider' }),
-		{
-			type: 'link' as const,
-			icon: 'ti ti-plus',
-			text: i18n.ts.createNew,
-			to: '/my/antennas',
-		},
-	];
-	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);
-}
-
-async function chooseChannel(ev: PointerEvent): Promise<void> {
-	const channels = await favoritedChannelsCache.fetch();
-	const items: (MenuItem | undefined)[] = [
-		...channels.map(channel => {
-			const lastReadedAt = miLocalStorage.getItemAsJson(`channelLastReadedAt:${channel.id}`) ?? null;
-			const hasUnreadNote = (lastReadedAt && channel.lastNotedAt) ? Date.parse(channel.lastNotedAt) > lastReadedAt : !!(!lastReadedAt && channel.lastNotedAt);
-
-			return {
-				type: 'link' as const,
-				text: channel.name,
-				indicate: hasUnreadNote,
-				to: `/channels/${channel.id}`,
-			};
-		}),
-		(channels.length === 0 ? undefined : { type: 'divider' }),
-		{
-			type: 'link',
-			icon: 'ti ti-plus',
-			text: i18n.ts.createNew,
-			to: '/channels/new',
-		},
-	];
-	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);
-}
-
 function saveSrc(newSrc: TimelinePageSrc): void {
 	const out = deepMerge({ src: newSrc }, store.s.tl);
-
-	if (newSrc.startsWith('userList:')) {
-		const id = newSrc.substring('userList:'.length);
-		out.userList = prefer.r.pinnedUserLists.value.find(l => l.id === id) ?? null;
-	}
 
 	store.set('tl', out);
 	if (['local', 'global'].includes(newSrc)) {
@@ -264,32 +192,12 @@ const headerActions = computed<PageHeaderItem[]>(() => {
 	return items;
 });
 
-const headerTabs = computed(() => [...(prefer.r.pinnedUserLists.value.map(l => ({
-	key: 'list:' + l.id,
-	title: l.name,
-	icon: 'ti ti-star',
-	iconOnly: true,
-}))), ...availableBasicTimelines().map(tl => ({
-	key: tl,
-	title: i18n.ts._timelines[tl],
-	icon: basicTimelineIconClass(tl),
-	iconOnly: true,
-})), {
-	icon: 'ti ti-list',
-	title: i18n.ts.lists,
-	iconOnly: true,
-	onClick: chooseList,
-}, {
-	icon: 'ti ti-antenna',
-	title: i18n.ts.antennas,
-	iconOnly: true,
-	onClick: chooseAntenna,
-}, {
-	icon: 'ti ti-device-tv',
-	title: i18n.ts.channel,
-	iconOnly: true,
-	onClick: chooseChannel,
-}] as Tab[]);
+const headerTabs = computed(() => availableBasicTimelines().map(tl => ({
+ key: tl,
+ title: i18n.ts._timelines[tl],
+ icon: basicTimelineIconClass(tl),
+ iconOnly: true,
+})) as Tab[]);
 
 const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(tl => ({
 	key: tl,

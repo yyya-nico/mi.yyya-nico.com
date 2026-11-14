@@ -10,7 +10,6 @@ import defaultLightTheme from '@@/themes/l-light.json5';
 import defaultDarkTheme from '@@/themes/d-green-lime.json5';
 import { storeBootloaderErrors } from '@@/js/store-boot-errors';
 import type { App } from 'vue';
-import widgets from '@/widgets/index.js';
 import directives from '@/directives/index.js';
 import components from '@/components/index.js';
 import { themeManager } from '@/theme.js';
@@ -23,13 +22,11 @@ import { updateDeviceKind } from '@/utility/device-kind.js';
 import { reloadChannel } from '@/utility/unison-reload.js';
 import { getUrlWithoutLoginId } from '@/utility/login-id.js';
 import { getAccountFromId } from '@/utility/get-account-from-id.js';
-import { deckStore } from '@/ui/deck/deck-store.js';
 import { analytics, initAnalytics } from '@/analytics.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { fetchCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
-import { launchPlugins } from '@/plugin.js';
 import { initTelemetry } from '@/telemetry.js';
 
 export async function common(createVue: () => Promise<App<Element>>) {
@@ -116,7 +113,6 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	//#endregion
 
 	await store.ready;
-	await deckStore.ready;
 
 	const fetchInstanceMetaPromise = fetchInstance();
 
@@ -265,7 +261,6 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		app.config.performance = true;
 	}
 
-	widgets(app);
 	directives(app);
 	components(app);
 
@@ -288,12 +283,6 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	})();
 
 	await initTelemetry(instance, app);
-
-	try {
-		await launchPlugins();
-	} catch (error) {
-		console.error('Failed to launch plugins:', error);
-	}
 
 	app.mount(rootEl);
 

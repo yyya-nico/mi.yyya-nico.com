@@ -10,13 +10,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<XNotes v-else-if="tab === 'notes'" :user="user"/>
 		<XFiles v-else-if="tab === 'files'" :user="user"/>
 		<XActivity v-else-if="tab === 'activity'" :user="user"/>
-		<XAchievements v-else-if="tab === 'achievements'" :user="user"/>
 		<XReactions v-else-if="tab === 'reactions'" :user="user"/>
 		<XClips v-else-if="tab === 'clips'" :user="user"/>
-		<XLists v-else-if="tab === 'lists'" :user="user"/>
-		<XPages v-else-if="tab === 'pages'" :user="user"/>
-		<XFlashs v-else-if="tab === 'flashs'" :user="user"/>
-		<XGallery v-else-if="tab === 'gallery'" :user="user"/>
 		<XRaw v-else-if="tab === 'raw'" :user="user"/>
 	</div>
 	<MkError v-else-if="error" @retry="fetchUser()"/>
@@ -38,13 +33,8 @@ const XHome = defineAsyncComponent(() => import('./home.vue'));
 const XNotes = defineAsyncComponent(() => import('./notes.vue'));
 const XFiles = defineAsyncComponent(() => import('./files.vue'));
 const XActivity = defineAsyncComponent(() => import('./activity.vue'));
-const XAchievements = defineAsyncComponent(() => import('./achievements.vue'));
 const XReactions = defineAsyncComponent(() => import('./reactions.vue'));
 const XClips = defineAsyncComponent(() => import('./clips.vue'));
-const XLists = defineAsyncComponent(() => import('./lists.vue'));
-const XPages = defineAsyncComponent(() => import('./pages.vue'));
-const XFlashs = defineAsyncComponent(() => import('./flashs.vue'));
-const XGallery = defineAsyncComponent(() => import('./gallery.vue'));
 const XRaw = defineAsyncComponent(() => import('./raw.vue'));
 
 // contextは非ログイン状態の情報しかないためログイン時は利用できない
@@ -114,11 +104,7 @@ const headerTabs = computed(() => user.value ? [{
 	key: 'activity',
 	title: i18n.ts.activity,
 	icon: 'ti ti-chart-line',
-}, ...(user.value.host == null ? [{
-	key: 'achievements',
-	title: i18n.ts.achievements,
-	icon: 'ti ti-medal',
-}] : []), ...($i && ($i.id === user.value.id || $i.isAdmin || $i.isModerator)) || user.value.publicReactions ? [{
+}, ...(user.value.host == null ? [] : []), ...($i && ($i.id === user.value.id || $i.isAdmin || $i.isModerator)) || user.value.publicReactions ? [{
 	key: 'reactions',
 	title: i18n.ts.reaction,
 	icon: 'ti ti-mood-happy',
@@ -126,22 +112,6 @@ const headerTabs = computed(() => user.value ? [{
 	key: 'clips',
 	title: i18n.ts.clips,
 	icon: 'ti ti-paperclip',
-}, {
-	key: 'lists',
-	title: i18n.ts.lists,
-	icon: 'ti ti-list',
-}, {
-	key: 'pages',
-	title: i18n.ts.pages,
-	icon: 'ti ti-news',
-}, {
-	key: 'flashs',
-	title: 'Play',
-	icon: 'ti ti-player-play',
-}, {
-	key: 'gallery',
-	title: i18n.ts.gallery,
-	icon: 'ti ti-icons',
 }, {
 	key: 'raw',
 	title: 'Raw',

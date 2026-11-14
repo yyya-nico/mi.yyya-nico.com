@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<{
 
 const highlighter = await getHighlighter();
 const darkMode = store.r.darkMode;
-const codeLang = ref<BundledLanguage | 'aiscript'>('js');
+const codeLang = ref<BundledLanguage>('js');
 
 const [lightThemeName, darkThemeName] = await Promise.all([
 	getTheme('light', true),
@@ -53,7 +53,7 @@ const html = computed(() => highlighter.codeToHtml(props.code, {
 
 async function fetchLanguage(to: string): Promise<void> {
 	const language = to as BundledLanguage;
-	let resolvedLang: BundledLanguage | 'aiscript' = language;
+	let resolvedLang: BundledLanguage = language;
 
 	// Check for the loaded languages, and load the language if it's not loaded yet.
 	if (!highlighter.getLoadedLanguages().includes(language)) {

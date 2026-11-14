@@ -47,7 +47,7 @@ export const followingVisibilities = ['public', 'followers', 'private'] as const
 
 export const followersVisibilities = ['public', 'followers', 'private'] as const;
 
-export const permissions = [
+const permissionNames = [
 	'read:account',
 	'write:account',
 	'read:blocks',
@@ -135,6 +135,9 @@ export const permissions = [
 	'write:chat',
 	'read:chat',
 ] as const;
+
+// Keep historical names in the type for stored tokens, but never offer removed scopes.
+export const permissions = permissionNames.filter(permission => !/^(?:read|write):(?:favorites|messaging|pages|page-likes|user-groups|channels|gallery|gallery-likes|flash|flash-likes|chat|admin:announcements|admin:avatar-decorations)$/.test(permission));
 
 export const moderationLogTypes = [
 	'updateServerSettings',

@@ -148,7 +148,7 @@ import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import * as os from '@/os.js';
 import { definePage } from '@/page.js';
-import { claimAchievement, claimedAchievements } from '@/utility/achievements.js';
+import { claimAchievement } from '@/utility/achievements.js';
 import { $i } from '@/i.js';
 import { prefer } from '@/preferences.js';
 
@@ -420,7 +420,7 @@ const patrons = [
 	'忍猫',
 ];
 
-const thereIsTreasure = ref($i && !claimedAchievements.includes('foundTreasure'));
+const thereIsTreasure = ref(false);
 
 let easterEggReady = false;
 const easterEggEmojis = ref<{

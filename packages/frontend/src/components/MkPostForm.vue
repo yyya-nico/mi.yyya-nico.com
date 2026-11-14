@@ -222,7 +222,7 @@ const textAreaReadOnly = ref(false);
 const justEndedComposition = ref(false);
 const renoteTargetNote: ShallowRef<PostFormProps['renote'] | null> = shallowRef(props.renote);
 const replyTargetNote: ShallowRef<PostFormProps['reply'] | null> = shallowRef(props.reply);
-const targetChannel = shallowRef(props.channel);
+const targetChannel = shallowRef<Misskey.entities.Channel | null>(null);
 
 const serverDraftId = ref<string | null>(null);
 const postFormActions = getPluginHandlers('post_form_action');
@@ -926,7 +926,7 @@ async function saveServerDraft(options: {
 		visibleUserIds: visibleUsers.value.map(x => x.id),
 		renoteId: renoteTargetNote.value ? renoteTargetNote.value.id : quoteId.value ? quoteId.value : null,
 		replyId: replyTargetNote.value ? replyTargetNote.value.id : null,
-		channelId: targetChannel.value ? targetChannel.value.id : null,
+		channelId: null,
 		reactionAcceptance: reactionAcceptance.value,
 		scheduledAt: scheduledAt.value,
 		isActuallyScheduled: options.isActuallyScheduled ?? false,
@@ -1022,7 +1022,7 @@ async function post(ev?: PointerEvent) {
 		fileIds: files.value.length > 0 ? files.value.map(f => f.id) : undefined,
 		replyId: replyTargetNote.value ? replyTargetNote.value.id : undefined,
 		renoteId: renoteTargetNote.value ? renoteTargetNote.value.id : quoteId.value ? quoteId.value : undefined,
-		channelId: targetChannel.value ? targetChannel.value.id : undefined,
+		channelId: null,
 		poll: poll.value,
 		cw: useCw.value ? cw.value ?? '' : null,
 		localOnly: visibility.value === 'specified' ? false : localOnly.value,
@@ -1288,7 +1288,6 @@ async function openAccountMenu(ev: PointerEvent) {
 				replyTargetNote.value = draft.reply;
 				reactionAcceptance.value = draft.reactionAcceptance;
 				scheduledAt.value = draft.scheduledAt ?? null;
-				if (draft.channel) targetChannel.value = draft.channel as unknown as Misskey.entities.Channel;
 
 				serverDraftId.value = draft.id;
 			},

@@ -349,8 +349,8 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.publicReactions, true);
 		assert.strictEqual(response.followingVisibility, 'public');
 		assert.strictEqual(response.followersVisibility, 'public');
-		assert.strictEqual(response.chatScope, 'mutual');
-		assert.strictEqual(response.canChat, true);
+		assert.strictEqual(response.chatScope, 'none');
+		assert.strictEqual(response.canChat, false);
 		assert.deepStrictEqual(response.roles, []);
 		assert.strictEqual(response.memo, null);
 
@@ -361,7 +361,7 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.isModerator, false);
 		assert.strictEqual(response.isAdmin, false);
 		assert.strictEqual(response.injectFeaturedNote, true);
-		assert.strictEqual(response.receiveAnnouncementEmail, true);
+		assert.strictEqual(response.receiveAnnouncementEmail, false);
 		assert.strictEqual(response.alwaysMarkNsfw, false);
 		assert.strictEqual(response.autoSensitive, false);
 		assert.strictEqual(response.carefulBot, false);
@@ -460,7 +460,6 @@ describe('ユーザー', () => {
 		{ parameters: () => ({ isCat: false }) },
 		{ parameters: () => ({ injectFeaturedNote: true }) },
 		{ parameters: () => ({ injectFeaturedNote: false }) },
-		{ parameters: () => ({ receiveAnnouncementEmail: true }) },
 		{ parameters: () => ({ receiveAnnouncementEmail: false }) },
 		{ parameters: () => ({ alwaysMarkNsfw: true }) },
 		{ parameters: () => ({ alwaysMarkNsfw: false }) },
@@ -878,12 +877,6 @@ describe('ユーザー', () => {
 	//#region オススメユーザー(users/recommendation)
 
 	// BUG users/recommendationは壊れている？ > QueryFailedError: missing FROM-clause entry for table "note"
-	test.skip('のオススメを取得することができる', async () => {
-		const parameters = {};
-		const response = await successfulApiCall({ endpoint: 'users/recommendation', parameters, user: alice });
-		const expected = await Promise.all(response.map(u => show(u.id)));
-		assert.deepStrictEqual(response, expected);
-	});
 
 	//#endregion
 	//#region ピン止めユーザー(pinned-users)

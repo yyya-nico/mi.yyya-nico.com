@@ -32,9 +32,12 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { Config } from '@/config.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
-import { notificationRecieveConfig } from '@/models/json-schema/user.js';
+import { notificationRecieveConfig as legacyNotificationRecieveConfig } from '@/models/json-schema/user.js';
+
 import { ApiLoggerService } from '../../ApiLoggerService.js';
 import { ApiError } from '../../error.js';
+
+const notificationRecieveConfig = legacyNotificationRecieveConfig.oneOf[0];
 
 export const meta = {
 	tags: ['account'],
@@ -160,7 +163,7 @@ export const paramDef = {
 		birthday: { ...birthdaySchema, nullable: true },
 		lang: { type: 'string', enum: [null, ...Object.keys(langmap)] as string[], nullable: true },
 		avatarId: { type: 'string', format: 'misskey:id', nullable: true },
-		avatarDecorations: { type: 'array', maxItems: 16, items: {
+		avatarDecorations: { type: 'array', maxItems: 0, items: {
 			type: 'object',
 			properties: {
 				id: { type: 'string', format: 'misskey:id' },
@@ -206,8 +209,8 @@ export const paramDef = {
 		autoSensitive: { type: 'boolean' },
 		followingVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
 		followersVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
-		chatScope: { type: 'string', enum: ['everyone', 'followers', 'following', 'mutual', 'none'] },
-		pinnedPageId: { type: 'string', format: 'misskey:id', nullable: true },
+		chatScope: { type: 'string', enum: ['none'] },
+		pinnedPageId: { type: 'null' },
 		mutedWords: muteWords,
 		hardMutedWords: muteWords,
 		mutedInstances: { type: 'array', items: {
@@ -377,7 +380,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if ((typeof ps.makeNotesHiddenBefore === 'number') || (ps.makeNotesHiddenBefore === null)) updates.makeNotesHiddenBefore = ps.makeNotesHiddenBefore;
 			if (typeof ps.isCat === 'boolean') updates.isCat = ps.isCat;
 			if (typeof ps.injectFeaturedNote === 'boolean') profileUpdates.injectFeaturedNote = ps.injectFeaturedNote;
-			if (typeof ps.receiveAnnouncementEmail === 'boolean') profileUpdates.receiveAnnouncementEmail = ps.receiveAnnouncementEmail;
+			profileUpdates.receiveAnnouncementEmail = false;
 			if (typeof ps.alwaysMarkNsfw === 'boolean') {
 				policies ??= await this.roleService.getUserPolicies(user.id);
 				if (policies.alwaysMarkNsfw) throw new ApiError(meta.errors.restrictedByRole);
@@ -422,36 +425,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				updates.bannerId = null;
 				updates.bannerUrl = null;
 				updates.bannerBlurhash = null;
-			}
-
-			if (ps.avatarDecorations) {
-				policies ??= await this.roleService.getUserPolicies(user.id);
-				const decorations = await this.avatarDecorationService.getAll(true);
-				const myRoles = await this.roleService.getUserRoles(user.id);
-				const allRoles = await this.roleService.getRoles();
-				const decorationIds = decorations
-					.filter(d => d.roleIdsThatCanBeUsedThisDecoration.filter(roleId => allRoles.some(r => r.id === roleId)).length === 0 || myRoles.some(r => d.roleIdsThatCanBeUsedThisDecoration.includes(r.id)))
-					.map(d => d.id);
-
-				if (ps.avatarDecorations.length > policies.avatarDecorationLimit) throw new ApiError(meta.errors.restrictedByRole);
-
-				updates.avatarDecorations = ps.avatarDecorations.filter(d => decorationIds.includes(d.id)).map(d => ({
-					id: d.id,
-					angle: d.angle ?? 0,
-					flipH: d.flipH ?? false,
-					offsetX: d.offsetX ?? 0,
-					offsetY: d.offsetY ?? 0,
-				}));
-			}
-
-			if (ps.pinnedPageId) {
-				const page = await this.pagesRepository.findOneBy({ id: ps.pinnedPageId });
-
-				if (page == null || page.userId !== user.id) throw new ApiError(meta.errors.noSuchPage);
-
-				profileUpdates.pinnedPageId = page.id;
-			} else if (ps.pinnedPageId === null) {
-				profileUpdates.pinnedPageId = null;
 			}
 
 			if (ps.fields) {

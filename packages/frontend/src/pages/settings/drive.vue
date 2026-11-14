@@ -86,72 +86,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label><SearchLabel>{{ i18n.ts.image }}</SearchLabel></template>
 
 				<div class="_gaps_m">
-					<SearchMarker :keywords="['watermark', 'credit']">
-						<MkFolder v-if="$i.policies.watermarkAvailable">
-							<template #icon><i class="ti ti-copyright"></i></template>
-							<template #label><SearchLabel>{{ i18n.ts.watermark }}</SearchLabel></template>
-							<template #caption>{{ i18n.ts._watermarkEditor.tip }}</template>
-
-							<div class="_gaps">
-								<div class="_gaps_s">
-									<XWatermarkItem
-										v-for="(preset, i) in prefer.r.watermarkPresets.value"
-										:key="preset.id"
-										:preset="preset"
-										@updatePreset="onUpdateWatermarkPreset(preset.id, $event)"
-										@del="onDeleteWatermarkPreset(preset.id)"
-									/>
-
-									<MkButton iconOnly rounded style="margin: 0 auto;" @click="addWatermarkPreset"><i class="ti ti-plus"></i></MkButton>
-
-									<SearchMarker :keywords="['sync', 'watermark', 'preset', 'devices']">
-										<MkSwitch :modelValue="watermarkPresetsSyncEnabled" @update:modelValue="changeWatermarkPresetsSyncEnabled">
-											<template #label><i class="ti ti-cloud-cog"></i> <SearchLabel>{{ i18n.ts.syncBetweenDevices }}</SearchLabel></template>
-										</MkSwitch>
-									</SearchMarker>
-								</div>
-
-								<hr>
-
-								<SearchMarker :keywords="['default', 'watermark', 'preset']">
-									<MkPreferenceContainer k="defaultWatermarkPresetId">
-										<MkSelect v-model="defaultWatermarkPresetId" :items="[{ label: i18n.ts.none, value: null }, ...prefer.r.watermarkPresets.value.map(p => ({ label: p.name || i18n.ts.noName, value: p.id }))]">
-											<template #label><SearchLabel>{{ i18n.ts.defaultPreset }}</SearchLabel></template>
-										</MkSelect>
-									</MkPreferenceContainer>
-								</SearchMarker>
-							</div>
-						</MkFolder>
-					</SearchMarker>
-
-					<SearchMarker :keywords="['label', 'frame', 'credit', 'metadata']">
-						<MkFolder>
-							<template #icon><i class="ti ti-device-ipad-horizontal"></i></template>
-							<template #label><SearchLabel>{{ i18n.ts.frame }}</SearchLabel></template>
-							<template #caption>{{ i18n.ts._imageFrameEditor.tip }}</template>
-
-							<div class="_gaps">
-								<div class="_gaps_s">
-									<XImageFrameItem
-										v-for="(preset, i) in prefer.r.imageFramePresets.value"
-										:key="preset.id"
-										:preset="preset"
-										@updatePreset="onUpdateImageFramePreset(preset.id, $event)"
-										@del="onDeleteImageFramePreset(preset.id)"
-									/>
-
-									<MkButton iconOnly rounded style="margin: 0 auto;" @click="addImageFramePreset"><i class="ti ti-plus"></i></MkButton>
-
-									<SearchMarker :keywords="['sync', 'frame', 'label', 'preset', 'devices']">
-										<MkSwitch :modelValue="imageFramePresetsSyncEnabled" @update:modelValue="changeImageFramePresetsSyncEnabled">
-											<template #label><i class="ti ti-cloud-cog"></i> <SearchLabel>{{ i18n.ts.syncBetweenDevices }}</SearchLabel></template>
-										</MkSwitch>
-									</SearchMarker>
-								</div>
-							</div>
-						</MkFolder>
-					</SearchMarker>
-
 					<SearchMarker :keywords="['default', 'image', 'compression']">
 						<MkPreferenceContainer k="defaultImageCompressionLevel">
 							<MkSelect
@@ -199,13 +133,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, ref } from 'vue';
+import { computed, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import tinycolor from 'tinycolor2';
-import XWatermarkItem from './drive.WatermarkItem.vue';
-import XImageFrameItem from './drive.ImageFrameItem.vue';
-import type { WatermarkPreset } from '@/utility/watermark/WatermarkRenderer.js';
-import type { ImageFramePreset } from '@/utility/image-frame-renderer/ImageFrameRenderer.js';
 import FormLink from '@/components/form/link.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
@@ -223,9 +153,6 @@ import { prefer } from '@/preferences.js';
 import MkPreferenceContainer from '@/components/MkPreferenceContainer.vue';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 import { selectDriveFolder } from '@/utility/drive.js';
-import MkFolder from '@/components/MkFolder.vue';
-import MkButton from '@/components/MkButton.vue';
-import { genId } from '@/utility/id.js';
 
 const $i = ensureSignin();
 
@@ -249,37 +176,8 @@ const meterStyle = computed(() => {
 });
 
 const keepOriginalFilename = prefer.model('keepOriginalFilename');
-const defaultWatermarkPresetId = prefer.model('defaultWatermarkPresetId');
 const defaultImageCompressionLevel = prefer.model('defaultImageCompressionLevel');
 const defaultVideoCompressionLevel = prefer.model('defaultVideoCompressionLevel');
-
-const watermarkPresetsSyncEnabled = ref(prefer.isSyncEnabled('watermarkPresets'));
-
-function changeWatermarkPresetsSyncEnabled(value: boolean) {
-	if (value) {
-		prefer.enableSync('watermarkPresets').then((res) => {
-			if (res == null) return;
-			if (res.enabled) watermarkPresetsSyncEnabled.value = true;
-		});
-	} else {
-		prefer.disableSync('watermarkPresets');
-		watermarkPresetsSyncEnabled.value = false;
-	}
-}
-
-const imageFramePresetsSyncEnabled = ref(prefer.isSyncEnabled('imageFramePresets'));
-
-function changeImageFramePresetsSyncEnabled(value: boolean) {
-	if (value) {
-		prefer.enableSync('imageFramePresets').then((res) => {
-			if (res == null) return;
-			if (res.enabled) imageFramePresetsSyncEnabled.value = true;
-		});
-	} else {
-		prefer.disableSync('imageFramePresets');
-		imageFramePresetsSyncEnabled.value = false;
-	}
-}
 
 misskeyApi('drive').then(info => {
 	capacity.value = info.capacity;
@@ -307,78 +205,6 @@ function chooseUploadFolder() {
 		} else {
 			uploadFolder.value = null;
 		}
-	});
-}
-
-async function addWatermarkPreset() {
-	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkWatermarkEditorDialog.vue').then(x => x.default), {
-		presetEditMode: true,
-		preset: null,
-		layers: [],
-	}, {
-		presetOk: (preset) => {
-			prefer.commit('watermarkPresets', [...prefer.s.watermarkPresets, preset]);
-		},
-		closed: () => dispose(),
-	});
-}
-
-function onUpdateWatermarkPreset(id: string, preset: WatermarkPreset) {
-	const index = prefer.s.watermarkPresets.findIndex(p => p.id === id);
-	if (index !== -1) {
-		prefer.commit('watermarkPresets', [
-			...prefer.s.watermarkPresets.slice(0, index),
-			preset,
-			...prefer.s.watermarkPresets.slice(index + 1),
-		]);
-	}
-}
-
-function onDeleteWatermarkPreset(id: string) {
-	const index = prefer.s.watermarkPresets.findIndex(p => p.id === id);
-	if (index !== -1) {
-		prefer.commit('watermarkPresets', [
-			...prefer.s.watermarkPresets.slice(0, index),
-			...prefer.s.watermarkPresets.slice(index + 1),
-		]);
-
-		if (prefer.s.defaultWatermarkPresetId === id) {
-			prefer.commit('defaultWatermarkPresetId', null);
-		}
-	}
-}
-
-function onUpdateImageFramePreset(id: string, preset: ImageFramePreset) {
-	const index = prefer.s.imageFramePresets.findIndex(p => p.id === id);
-	if (index !== -1) {
-		prefer.commit('imageFramePresets', [
-			...prefer.s.imageFramePresets.slice(0, index),
-			preset,
-			...prefer.s.imageFramePresets.slice(index + 1),
-		]);
-	}
-}
-
-function onDeleteImageFramePreset(id: string) {
-	const index = prefer.s.imageFramePresets.findIndex(p => p.id === id);
-	if (index !== -1) {
-		prefer.commit('imageFramePresets', [
-			...prefer.s.imageFramePresets.slice(0, index),
-			...prefer.s.imageFramePresets.slice(index + 1),
-		]);
-	}
-}
-
-async function addImageFramePreset() {
-	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImageFrameEditorDialog.vue').then(x => x.default), {
-		presetEditMode: true,
-		preset: null,
-		params: null,
-	}, {
-		presetOk: (preset) => {
-			prefer.commit('imageFramePresets', [...prefer.s.imageFramePresets, preset]);
-		},
-		closed: () => dispose(),
 	});
 }
 

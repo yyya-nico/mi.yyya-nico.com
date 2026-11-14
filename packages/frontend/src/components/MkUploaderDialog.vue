@@ -53,7 +53,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import * as Misskey from 'misskey-js';
-import type { UploaderFeatures, UploaderItem } from '@/composables/use-uploader.js';
+import type { UploaderItem } from '@/composables/use-uploader.js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import { i18n } from '@/i18n.js';
 import MkButton from '@/components/MkButton.vue';
@@ -68,7 +68,6 @@ const props = withDefaults(defineProps<{
 	files: File[];
 	folderId?: string | null;
 	multiple?: boolean;
-	features?: UploaderFeatures;
 }>(), {
 	multiple: true,
 });
@@ -84,7 +83,6 @@ const dialog = useTemplateRef('dialog');
 const uploader = useUploader({
 	multiple: props.multiple,
 	folderId: props.folderId,
-	features: props.features,
 });
 
 onMounted(() => {

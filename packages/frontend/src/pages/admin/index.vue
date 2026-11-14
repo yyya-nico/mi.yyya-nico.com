@@ -132,11 +132,6 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		to: '/admin/emojis2',
 		active: currentPage.value?.route.name === 'emojis2',
 	}, {
-		icon: 'ti ti-sparkles',
-		text: i18n.ts.avatarDecorations,
-		to: '/admin/avatar-decorations',
-		active: currentPage.value?.route.name === 'avatarDecorations',
-	}, {
 		icon: 'ti ti-whirl',
 		text: i18n.ts.federation,
 		to: '/admin/federation',
@@ -156,11 +151,6 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.files,
 		to: '/admin/files',
 		active: currentPage.value?.route.name === 'files',
-	}, {
-		icon: 'ti ti-speakerphone',
-		text: i18n.ts.announcements,
-		to: '/admin/announcements',
-		active: currentPage.value?.route.name === 'announcements',
 	}, {
 		icon: 'ti ti-ad',
 		text: i18n.ts.ads,

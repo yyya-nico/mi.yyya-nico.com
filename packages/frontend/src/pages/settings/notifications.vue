@@ -28,7 +28,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</template>
 
 					<XNotificationConfig
-						:userLists="userLists"
 						:value="$i.notificationRecieveConfig[type] ?? { type: 'all' }"
 						:configurableTypes="(onlyOnOrOffNotificationTypes as string[]).includes(type) ? ['all', 'never'] : undefined"
 						@update="(res) => updateReceiveConfig(type, res)"
@@ -132,7 +131,7 @@ const notifyUserPaginator = markRaw(new Paginator('following/list', {
 	},
 }));
 
-const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted'] as const satisfies (typeof notificationTypes[number])[];
+const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted', 'achievementEarned', 'chatRoomInvitationReceived'] as const satisfies (typeof notificationTypes[number])[];
 
 const configurableNotificationTypes = notificationTypes.filter(type => !nonConfigurableNotificationTypes.includes(type as any)) as Exclude<typeof notificationTypes[number], typeof nonConfigurableNotificationTypes[number]>[];
 
@@ -141,7 +140,6 @@ const onlyOnOrOffNotificationTypes = ['app', 'achievementEarned', 'login', 'crea
 const allowButton = useTemplateRef('allowButton');
 const pushRegistrationInServer = computed(() => allowButton.value?.pushRegistrationInServer);
 const sendReadMessage = computed(() => pushRegistrationInServer.value?.sendReadMessage || false);
-const userLists = await misskeyApi('users/lists/list');
 
 async function readAllNotifications() {
 	await os.apiWithDialog('notifications/mark-all-as-read', {});

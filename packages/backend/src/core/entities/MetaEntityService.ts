@@ -14,7 +14,7 @@ import { bindThis } from '@/decorators.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
-import { DEFAULT_POLICIES } from '@/core/RoleService.js';
+import { DEFAULT_POLICIES, REMOVED_FEATURE_POLICIES } from '@/core/RoleService.js';
 
 @Injectable()
 export class MetaEntityService {
@@ -127,7 +127,7 @@ export class MetaEntityService {
 
 			serverRules: instance.serverRules,
 
-			policies: { ...DEFAULT_POLICIES, ...instance.policies },
+			policies: { ...DEFAULT_POLICIES, ...instance.policies, ...REMOVED_FEATURE_POLICIES },
 
 			sentryForFrontend: this.config.sentryForFrontend ?? null,
 			mediaProxy: this.config.mediaProxy,

@@ -17,10 +17,6 @@ export const page = (loader: AsyncComponentLoader) => defineAsyncComponent({
 	errorComponent: MkError,
 });
 
-function chatPage(...args: Parameters<typeof page>) {
-	return $i?.policies.chatAvailability !== 'unavailable' ? page(...args) : page(() => import('@/pages/not-found.vue'));
-}
-
 export const ROUTE_DEF = [{
 	name: 'index',
 	path: '/',
@@ -28,9 +24,6 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/timeline',
 	component: PageTimeline,
-}, {
-	path: '/@:username/pages/:pageName(*)',
-	component: page(() => import('@/pages/page.vue')),
 }, {
 	path: '/@:acct/following',
 	component: page(() => import('@/pages/user/following.vue')),
@@ -46,28 +39,8 @@ export const ROUTE_DEF = [{
 	path: '/notes/:noteId/:initialTab?',
 	component: page(() => import('@/pages/note.vue')),
 }, {
-	name: 'list',
-	path: '/list/:listId',
-	component: page(() => import('@/pages/list.vue')),
-}, {
 	path: '/clips/:clipId',
 	component: page(() => import('@/pages/clip.vue')),
-}, {
-	path: '/chat',
-	component: chatPage(() => import('@/pages/chat/home.vue')),
-	loginRequired: true,
-}, {
-	path: '/chat/user/:userId',
-	component: chatPage(() => import('@/pages/chat/room.vue')),
-	loginRequired: true,
-}, {
-	path: '/chat/room/:roomId',
-	component: chatPage(() => import('@/pages/chat/room.vue')),
-	loginRequired: true,
-}, {
-	path: '/chat/messages/:messageId',
-	component: chatPage(() => import('@/pages/chat/message.vue')),
-	loginRequired: true,
 }, {
 	path: '/instance-info/:host',
 	component: page(() => import('@/pages/instance-info.vue')),
@@ -80,10 +53,6 @@ export const ROUTE_DEF = [{
 		path: '/profile',
 		name: 'profile',
 		component: page(() => import('@/pages/settings/profile.vue')),
-	}, {
-		path: '/avatar-decoration',
-		name: 'avatarDecoration',
-		component: page(() => import('@/pages/settings/avatar-decoration.vue')),
 	}, {
 		path: '/privacy',
 		name: 'privacy',
@@ -141,14 +110,6 @@ export const ROUTE_DEF = [{
 		name: 'sounds',
 		component: page(() => import('@/pages/settings/sounds.vue')),
 	}, {
-		path: '/plugin/install',
-		name: 'plugin',
-		component: page(() => import('@/pages/settings/plugin.install.vue')),
-	}, {
-		path: '/plugin',
-		name: 'plugin',
-		component: page(() => import('@/pages/settings/plugin.vue')),
-	}, {
 		path: '/account-data',
 		name: 'account-data',
 		component: page(() => import('@/pages/settings/account-data.vue')),
@@ -172,10 +133,6 @@ export const ROUTE_DEF = [{
 		path: '/webhook/new',
 		name: 'connect',
 		component: page(() => import('@/pages/settings/webhook.new.vue')),
-	}, {
-		path: '/deck',
-		name: 'deck',
-		component: page(() => import('@/pages/settings/deck.vue')),
 	}, {
 		path: '/custom-css',
 		name: 'preferences',
@@ -206,12 +163,6 @@ export const ROUTE_DEF = [{
 	path: '/verify-email/:code',
 	component: page(() => import('@/pages/verify-email.vue')),
 }, {
-	path: '/announcements',
-	component: page(() => import('@/pages/announcements.vue')),
-}, {
-	path: '/announcements/:announcementId',
-	component: page(() => import('@/pages/announcement.vue')),
-}, {
 	path: '/about',
 	component: page(() => import('@/pages/about.vue')),
 	hash: 'initialTab',
@@ -238,10 +189,6 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/user-tags/:tag',
 	component: page(() => import('@/pages/user-tag.vue')),
-}, {
-	path: '/explore',
-	component: page(() => import('@/pages/explore.vue')),
-	hash: 'initialTab',
 }, {
 	path: '/search',
 	component: page(() => import('@/pages/search.vue')),
@@ -277,9 +224,6 @@ export const ROUTE_DEF = [{
 	component: page(() => import('@/pages/api-console.vue')),
 	loginRequired: true,
 }, {
-	path: '/scratchpad',
-	component: page(() => import('@/pages/scratchpad.vue')),
-}, {
 	path: '/preview',
 	component: page(() => import('@/pages/preview.vue')),
 }, {
@@ -301,65 +245,8 @@ export const ROUTE_DEF = [{
 	path: '/tags/:tag',
 	component: page(() => import('@/pages/tag.vue')),
 }, {
-	path: '/pages/new',
-	component: page(() => import('@/pages/page-editor/page-editor.vue')),
-	loginRequired: true,
-}, {
-	path: '/pages/edit/:initPageId',
-	component: page(() => import('@/pages/page-editor/page-editor.vue')),
-	loginRequired: true,
-}, {
-	path: '/pages',
-	component: page(() => import('@/pages/pages.vue')),
-}, {
-	path: '/play/:id/edit',
-	component: page(() => import('@/pages/flash/flash-edit.vue')),
-	loginRequired: true,
-}, {
-	path: '/play/new',
-	component: page(() => import('@/pages/flash/flash-edit.vue')),
-	loginRequired: true,
-}, {
-	path: '/play/:id',
-	component: page(() => import('@/pages/flash/flash.vue')),
-}, {
-	path: '/play',
-	component: page(() => import('@/pages/flash/flash-index.vue')),
-}, {
-	path: '/gallery/:postId/edit',
-	component: page(() => import('@/pages/gallery/edit.vue')),
-	loginRequired: true,
-}, {
-	path: '/gallery/new',
-	component: page(() => import('@/pages/gallery/edit.vue')),
-	loginRequired: true,
-}, {
-	path: '/gallery/:postId',
-	component: page(() => import('@/pages/gallery/post.vue')),
-}, {
-	path: '/gallery',
-	component: page(() => import('@/pages/gallery/index.vue')),
-}, {
-	path: '/channels/:channelId/edit',
-	component: page(() => import('@/pages/channel-editor.vue')),
-	loginRequired: true,
-}, {
-	path: '/channels/new',
-	component: page(() => import('@/pages/channel-editor.vue')),
-	loginRequired: true,
-}, {
-	path: '/channels/:channelId',
-	component: page(() => import('@/pages/channel.vue')),
-}, {
-	path: '/channels',
-	component: page(() => import('@/pages/channels.vue')),
-}, {
 	path: '/custom-emojis-manager',
 	component: page(() => import('@/pages/custom-emojis-manager.vue')),
-}, {
-	path: '/avatar-decorations',
-	name: 'avatarDecorations',
-	component: page(() => import('@/pages/avatar-decorations.vue')),
 }, {
 	path: '/registry/keys/:domain/:path(*)?',
 	component: page(() => import('@/pages/registry.keys.vue')),
@@ -403,10 +290,6 @@ export const ROUTE_DEF = [{
 		name: 'emojis2',
 		component: page(() => import('@/pages/admin/custom-emojis-manager2.vue')),
 	}, {
-		path: '/avatar-decorations',
-		name: 'avatarDecorations',
-		component: page(() => import('@/pages/avatar-decorations.vue')),
-	}, {
 		path: '/federation-job-queue',
 		name: 'federationJobQueue',
 		component: page(() => import('@/pages/admin/federation-job-queue.vue')),
@@ -422,10 +305,6 @@ export const ROUTE_DEF = [{
 		path: '/federation',
 		name: 'federation',
 		component: page(() => import('@/pages/admin/federation.vue')),
-	}, {
-		path: '/announcements',
-		name: 'announcements',
-		component: page(() => import('@/pages/admin/announcements.vue')),
 	}, {
 		path: '/ads',
 		name: 'ads',
@@ -515,14 +394,6 @@ export const ROUTE_DEF = [{
 	component: page(() => import('@/pages/notifications.vue')),
 	loginRequired: true,
 }, {
-	path: '/my/favorites',
-	component: page(() => import('@/pages/favorites.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/achievements',
-	component: page(() => import('@/pages/achievements.vue')),
-	loginRequired: true,
-}, {
 	path: '/my/drive/folder/:folder',
 	component: page(() => import('@/pages/drive.vue')),
 	loginRequired: true,
@@ -539,60 +410,8 @@ export const ROUTE_DEF = [{
 	component: page(() => import('@/pages/follow-requests.vue')),
 	loginRequired: true,
 }, {
-	path: '/my/lists/:listId',
-	component: page(() => import('@/pages/my-lists/list.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/lists',
-	component: page(() => import('@/pages/my-lists/index.vue')),
-	loginRequired: true,
-}, {
 	path: '/my/clips',
 	component: page(() => import('@/pages/my-clips/index.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/antennas/create',
-	component: page(() => import('@/pages/my-antennas/create.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/antennas/:antennaId',
-	component: page(() => import('@/pages/my-antennas/edit.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/antennas',
-	component: page(() => import('@/pages/my-antennas/index.vue')),
-	loginRequired: true,
-}, {
-	path: '/timeline/list/:listId',
-	component: page(() => import('@/pages/user-list-timeline.vue')),
-	loginRequired: true,
-}, {
-	path: '/timeline/antenna/:antennaId',
-	component: page(() => import('@/pages/antenna-timeline.vue')),
-	loginRequired: true,
-}, {
-	path: '/clicker',
-	component: page(() => import('@/pages/clicker.vue')),
-	loginRequired: true,
-}, {
-	path: '/games',
-	component: page(() => import('@/pages/games.vue')),
-	loginRequired: false,
-}, {
-	path: '/bubble-game',
-	component: page(() => import('@/pages/drop-and-fusion.vue')),
-	loginRequired: true,
-}, {
-	path: '/reversi',
-	component: page(() => import('@/pages/reversi/index.vue')),
-	loginRequired: false,
-}, {
-	path: '/reversi/g/:gameId',
-	component: page(() => import('@/pages/reversi/game.vue')),
-	loginRequired: false,
-}, {
-	path: '/qr',
-	component: page(() => import('@/pages/qr.vue')),
 	loginRequired: true,
 }, {
 	path: '/debug',

@@ -123,6 +123,19 @@ export const DEFAULT_POLICIES: RolePolicies = {
 	watermarkAvailable: true,
 };
 
+export const REMOVED_FEATURE_POLICIES = {
+	canManageAvatarDecorations: false,
+	canCreateChannel: false,
+	antennaLimit: 0,
+	userListLimit: 0,
+	userEachUserListsLimit: 0,
+	avatarDecorationLimit: 0,
+	canImportAntennas: false,
+	canImportUserLists: false,
+	chatAvailability: 'unavailable',
+	watermarkAvailable: false,
+} as const satisfies Partial<RolePolicies>;
+
 @Injectable()
 export class RoleService implements OnApplicationShutdown, OnModuleInit {
 	private rolesCache: MemorySingleCache<MiRole[]>;
@@ -375,7 +388,7 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 
 	@bindThis
 	public async getUserPolicies(userId: MiUser['id'] | null): Promise<RolePolicies> {
-		const basePolicies = { ...DEFAULT_POLICIES, ...this.meta.policies };
+		const basePolicies = { ...DEFAULT_POLICIES, ...this.meta.policies, ...REMOVED_FEATURE_POLICIES };
 
 		if (userId == null) return basePolicies;
 
@@ -413,32 +426,32 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			inviteLimitCycle: calc('inviteLimitCycle', vs => Math.max(...vs)),
 			inviteExpirationTime: calc('inviteExpirationTime', vs => Math.max(...vs)),
 			canManageCustomEmojis: calc('canManageCustomEmojis', vs => vs.some(v => v === true)),
-			canManageAvatarDecorations: calc('canManageAvatarDecorations', vs => vs.some(v => v === true)),
+			canManageAvatarDecorations: false,
 			canSearchNotes: calc('canSearchNotes', vs => vs.some(v => v === true)),
 			canSearchUsers: calc('canSearchUsers', vs => vs.some(v => v === true)),
 			canUseTranslator: calc('canUseTranslator', vs => vs.some(v => v === true)),
 			canHideAds: calc('canHideAds', vs => vs.some(v => v === true)),
-			canCreateChannel: calc('canCreateChannel', vs => vs.some(v => v === true)),
+			canCreateChannel: false,
 			driveCapacityMb: calc('driveCapacityMb', vs => Math.max(...vs)),
 			maxFileSizeMb: calc('maxFileSizeMb', vs => Math.min(serverMaxFileSizeMb, Math.max(...vs))),
 			alwaysMarkNsfw: calc('alwaysMarkNsfw', vs => vs.some(v => v === true)),
 			canUpdateBioMedia: calc('canUpdateBioMedia', vs => vs.some(v => v === true)),
 			pinLimit: calc('pinLimit', vs => Math.max(...vs)),
-			antennaLimit: calc('antennaLimit', vs => Math.max(...vs)),
+			antennaLimit: 0,
 			wordMuteLimit: calc('wordMuteLimit', vs => Math.max(...vs)),
 			webhookLimit: calc('webhookLimit', vs => Math.max(...vs)),
 			clipLimit: calc('clipLimit', vs => Math.max(...vs)),
 			noteEachClipsLimit: calc('noteEachClipsLimit', vs => Math.max(...vs)),
-			userListLimit: calc('userListLimit', vs => Math.max(...vs)),
-			userEachUserListsLimit: calc('userEachUserListsLimit', vs => Math.max(...vs)),
+			userListLimit: 0,
+			userEachUserListsLimit: 0,
 			rateLimitFactor: calc('rateLimitFactor', vs => Math.max(...vs)),
-			avatarDecorationLimit: calc('avatarDecorationLimit', vs => Math.max(...vs)),
-			canImportAntennas: calc('canImportAntennas', vs => vs.some(v => v === true)),
+			avatarDecorationLimit: 0,
+			canImportAntennas: false,
 			canImportBlocking: calc('canImportBlocking', vs => vs.some(v => v === true)),
 			canImportFollowing: calc('canImportFollowing', vs => vs.some(v => v === true)),
 			canImportMuting: calc('canImportMuting', vs => vs.some(v => v === true)),
-			canImportUserLists: calc('canImportUserLists', vs => vs.some(v => v === true)),
-			chatAvailability: calc('chatAvailability', aggregateChatAvailability),
+			canImportUserLists: false,
+			chatAvailability: 'unavailable',
 			uploadableFileTypes: calc('uploadableFileTypes', vs => {
 				const set = new Set<string>();
 				for (const v of vs) {
@@ -451,7 +464,7 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			}),
 			noteDraftLimit: calc('noteDraftLimit', vs => Math.max(...vs)),
 			scheduledNoteLimit: calc('scheduledNoteLimit', vs => Math.max(...vs)),
-			watermarkAvailable: calc('watermarkAvailable', vs => vs.some(v => v === true)),
+			watermarkAvailable: false,
 		};
 	}
 
