@@ -5,6 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
+	<MkFeaturedPhotos v-if="instance.backgroundImageUrl" :class="$style.bg"/>
 	<div :class="$style.brand">
 		<div>Powered by</div>
 		<span :class="$style.misskey" role="img" aria-label="Misskey"></span>
@@ -32,6 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { instanceName } from '@@/js/config.js';
+import MkFeaturedPhotos from '@/components/MkFeaturedPhotos.vue';
 import MkStreamingNotesTimeline from '@/components/MkStreamingNotesTimeline.vue';
 import MkVisitorDashboard from '@/components/MkVisitorDashboard.vue';
 import MkResult from '@/components/global/MkResult.vue';
@@ -51,6 +53,14 @@ import { openInstanceMenu } from '@/ui/_common_/common.js';
 	padding: calc(var(--MI-margin) * 2);
 	box-sizing: border-box;
 	align-content: start;
+	isolation: isolate;
+}
+
+.bg {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
 }
 
 .brand {
