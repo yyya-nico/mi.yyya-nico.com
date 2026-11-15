@@ -77,7 +77,6 @@ import { FanoutTimelineService } from './FanoutTimelineService.js';
 import { ChannelFollowingService } from './ChannelFollowingService.js';
 import { ChatService } from './ChatService.js';
 import { RegistryApiService } from './RegistryApiService.js';
-import { ReversiService } from './ReversiService.js';
 import { PageService } from './PageService.js';
 
 import { ChartLoggerService } from './chart/ChartLoggerService.js';
@@ -229,7 +228,6 @@ const $ChannelFollowingService: Provider = { provide: 'ChannelFollowingService',
 const $ChannelMutingService: Provider = { provide: 'ChannelMutingService', useExisting: ChannelMutingService };
 const $ChatService: Provider = { provide: 'ChatService', useExisting: ChatService };
 const $RegistryApiService: Provider = { provide: 'RegistryApiService', useExisting: RegistryApiService };
-const $ReversiService: Provider = { provide: 'ReversiService', useExisting: ReversiService };
 const $PageService: Provider = { provide: 'PageService', useExisting: PageService };
 
 const $ChartLoggerService: Provider = { provide: 'ChartLoggerService', useExisting: ChartLoggerService };
@@ -382,7 +380,6 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		ChannelMutingService,
 		ChatService,
 		RegistryApiService,
-		ReversiService,
 		PageService,
 
 		ChartLoggerService,
@@ -533,7 +530,6 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$ChannelMutingService,
 		$ChatService,
 		$RegistryApiService,
-		$ReversiService,
 		$PageService,
 
 		$ChartLoggerService,
@@ -684,7 +680,6 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		ChannelMutingService,
 		ChatService,
 		RegistryApiService,
-		ReversiService,
 		PageService,
 
 		FederationChart,
@@ -833,7 +828,6 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$ChannelMutingService,
 		$ChatService,
 		$RegistryApiService,
-		$ReversiService,
 		$PageService,
 
 		$FederationChart,

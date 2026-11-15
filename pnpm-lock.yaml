@@ -480,9 +480,6 @@ importers:
       misskey-js:
         specifier: workspace:*
         version: link:../misskey-js
-      misskey-reversi:
-        specifier: workspace:*
-        version: link:../misskey-reversi
       ms:
         specifier: 3.0.0-canary.202508261828
         version: 3.0.0-canary.202508261828
@@ -1359,43 +1356,6 @@ importers:
         specifier: 8.72.1
         version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)
 
-  packages/misskey-bubble-game:
-    dependencies:
-      eventemitter3:
-        specifier: 5.0.4
-        version: 5.0.4
-      matter-js:
-        specifier: 0.20.0
-        version: 0.20.0
-      seedrandom:
-        specifier: 3.0.5
-        version: 3.0.5
-    devDependencies:
-      '@types/matter-js':
-        specifier: 0.20.2
-        version: 0.20.2
-      '@types/node':
-        specifier: 26.6.6
-        version: 26.6.6
-      '@types/seedrandom':
-        specifier: 3.0.8
-        version: 3.0.8
-      '@typescript-eslint/eslint-plugin':
-        specifier: 8.72.1
-        version: 8.72.1(@typescript-eslint/parser@8.72.1(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2))(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)
-      '@typescript-eslint/parser':
-        specifier: 8.72.1
-        version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)
-      esbuild:
-        specifier: 0.28.2
-        version: 0.28.2
-      execa:
-        specifier: 10.2.1
-        version: 10.2.1
-      nodemon:
-        specifier: 3.1.14
-        version: 3.1.14
-
   packages/misskey-js:
     dependencies:
       '@simplewebauthn/browser':
@@ -1474,31 +1434,6 @@ importers:
       tsx:
         specifier: 4.23.15
         version: 4.23.15
-
-  packages/misskey-reversi:
-    dependencies:
-      crc-32:
-        specifier: 1.2.2
-        version: 1.2.2
-    devDependencies:
-      '@types/node':
-        specifier: 26.6.6
-        version: 26.6.6
-      '@typescript-eslint/eslint-plugin':
-        specifier: 8.72.1
-        version: 8.72.1(@typescript-eslint/parser@8.72.1(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2))(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)
-      '@typescript-eslint/parser':
-        specifier: 8.72.1
-        version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)
-      esbuild:
-        specifier: 0.28.2
-        version: 0.28.2
-      execa:
-        specifier: 10.2.1
-        version: 10.2.1
-      nodemon:
-        specifier: 3.1.14
-        version: 3.1.14
 
   packages/sw:
     dependencies:
@@ -4891,11 +4826,6 @@ packages:
 
   core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
-
-  crc-32@1.2.2:
-    resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
-    engines: {node: '>=0.8'}
-    hasBin: true
 
   cron-parser@5.10.2:
     resolution: {integrity: sha512-JfAYMY0LZaWQTuict8PhtF/ksSnq8xefSDmQUnnoqvkPYkU/y3UP0DTWzJKFBz0P1IXsDG8q0vY3zHkoFZOhvw==}
@@ -12448,8 +12378,6 @@ snapshots:
   cookie@2.0.1: {}
 
   core-util-is@1.0.2: {}
-
-  crc-32@1.2.2: {}
 
   cron-parser@5.10.2:
     dependencies:

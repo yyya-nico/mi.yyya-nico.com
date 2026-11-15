@@ -255,18 +255,6 @@ try {
 		stderr: process.stderr,
 	});
 
-	startChildProcess('pnpm', ['--filter', 'misskey-reversi', 'watch', '--no-clean'], {
-		cwd: _dirname + '/../',
-		stdout: process.stdout,
-		stderr: process.stderr,
-	});
-
-	startChildProcess('pnpm', ['--filter', 'misskey-bubble-game', 'watch', '--no-clean'], {
-		cwd: _dirname + '/../',
-		stdout: process.stdout,
-		stderr: process.stderr,
-	});
-
 	persistentChildProcessesStarted = true;
 	shutdownIfAllPersistentChildProcessesStopped();
 } catch (error) {

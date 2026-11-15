@@ -32,7 +32,7 @@ const LINT_TARGETS = [
 	{ root: 'packages/frontend-embed', pattern: /^packages\/frontend-embed\/src\/.*\.(ts|vue)$/ },
 	{ root: 'packages/icons-subsetter', pattern: /^packages\/icons-subsetter\/src\/.*\.ts$/ },
 	{ root: 'packages/sw', pattern: /^packages\/sw\/src\/.*\.ts$/ },
-	...['frontend-shared', 'frontend-builder', 'i18n', 'misskey-js', 'misskey-bubble-game', 'misskey-reversi'].map((name) => ({
+	...['frontend-shared', 'frontend-builder', 'i18n', 'misskey-js'].map((name) => ({
 		root: `packages/${name}`,
 		pattern: new RegExp(`^packages/${name}/.*\\.(js|jsx|ts|tsx)$`),
 	})),
