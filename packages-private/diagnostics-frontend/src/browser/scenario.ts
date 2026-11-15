@@ -22,7 +22,7 @@ export async function runSignupAndPostScenario(chrome: HeadlessChromeController,
 	const noteText = `Frontend browser metrics ${Date.now()}`;
 
 	await visitHome(page, baseUrl);
-	await signupThroughUi(page, { username: 'alice', password: 'password' });
+	await signupThroughUi(page, baseUrl, { username: 'alice', password: 'password' });
 	await closeUserSetupDialog(page);
 	await postNote(page, noteText, 10_000);
 
