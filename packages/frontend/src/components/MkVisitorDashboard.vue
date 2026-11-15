@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div v-if="instance" :class="$style.root">
 	<div :class="[$style.main, $style.panel]">
 		<img :src="instance.iconUrl || '/favicon.ico'" alt="" :class="$style.mainIcon"/>
-		<button class="_button _acrylic" :class="$style.mainMenu" @click="showMenu"><i class="ti ti-dots"></i></button>
+		<button v-if="showTimeline" class="_button _acrylic" :class="$style.mainMenu" :aria-label="i18n.ts.menu" @click="showMenu"><i class="ti ti-dots"></i></button>
 		<div :class="$style.mainFg">
 			<h1 :class="$style.mainTitle">
 				<!-- 背景色によってはロゴが見えなくなるのでとりあえず無効に -->
@@ -19,14 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-html="instance.description || i18n.ts.headlineMisskey"></div>
 			</div>
 			<div v-if="instance.disableRegistration || instance.federation !== 'all'" :class="$style.mainWarn" class="_gaps_s">
-				<MkInfo v-if="instance.disableRegistration" warn>{{ i18n.ts.invitationRequiredToRegister }}</MkInfo>
 				<MkInfo v-if="instance.federation === 'specified'" warn>{{ i18n.ts.federationSpecified }}</MkInfo>
 				<MkInfo v-else-if="instance.federation === 'none'" warn>{{ i18n.ts.federationDisabled }}</MkInfo>
-			</div>
-			<div class="_gaps_s" :class="$style.mainActions">
-				<MkButton :class="$style.mainAction" full rounded gradate data-testid="signup" style="margin-right: 12px;" @click="signup()">{{ i18n.ts.joinThisServer }}</MkButton>
-				<MkButton :class="$style.mainAction" full rounded type="a" target="_blank" rel="noopener" href="https://misskey-hub.net/servers/">{{ i18n.ts.exploreOtherServers }}</MkButton>
-				<MkButton :class="$style.mainAction" full rounded data-testid="signin" @click="signin()">{{ i18n.ts.login }}</MkButton>
 			</div>
 		</div>
 	</div>
@@ -40,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.statsItemCount"><MkNumber :value="stats.originalNotesCount"/></div>
 		</div>
 	</div>
-	<div v-if="instance.policies.ltlAvailable && instance.clientOptions.showTimelineForVisitor !== false" :class="[$style.tl, $style.panel]">
+	<div v-if="showTimeline && instance.policies.ltlAvailable" :class="[$style.tl, $style.panel]">
 		<div :class="$style.tlHeader">{{ i18n.ts.letsLookAtTimeline }}</div>
 		<div :class="$style.tlBody">
 			<MkStreamingNotesTimeline src="local"/>
@@ -56,10 +50,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { defineAsyncComponent, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import { instanceName } from '@@/js/config.js';
-import MkButton from '@/components/MkButton.vue';
 import MkStreamingNotesTimeline from '@/components/MkStreamingNotesTimeline.vue';
 import MkInfo from '@/components/MkInfo.vue';
-import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
@@ -68,27 +60,13 @@ import { openInstanceMenu } from '@/ui/_common_/common.js';
 
 const XActiveUsersChart = defineAsyncComponent(() => import('@/components/MkVisitorDashboard.ActiveUsersChart.vue'));
 
+withDefaults(defineProps<{ showTimeline?: boolean }>(), { showTimeline: true });
+
 const stats = ref<Misskey.entities.StatsResponse | null>(null);
 
 if (instance.clientOptions.showActivitiesForVisitor !== false) {
 	misskeyApi('stats', {}).then((res) => {
 		stats.value = res;
-	});
-}
-
-async function signin() {
-	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkSigninDialog.vue').then((x) => x.default), {
-		autoSet: true,
-	}, {
-		closed: () => dispose(),
-	});
-}
-
-async function signup() {
-	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkSignupDialog.vue').then((x) => x.default), {
-		autoSet: true,
-	}, {
-		closed: () => dispose(),
 	});
 }
 
@@ -138,6 +116,7 @@ function showMenu(ev: PointerEvent) {
 .mainFg {
 	position: relative;
 	z-index: 1;
+	padding-bottom: var(--MI-margin);
 }
 
 .mainTitle {
@@ -159,14 +138,6 @@ function showMenu(ev: PointerEvent) {
 
 .mainWarn {
 	padding: 32px 32px 0 32px;
-}
-
-.mainActions {
-	padding: 32px;
-}
-
-.mainAction {
-	line-height: 28px;
 }
 
 .stats {

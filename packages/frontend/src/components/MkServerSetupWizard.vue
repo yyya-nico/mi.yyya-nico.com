@@ -139,11 +139,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 
 			<div>
-				<div><b>{{ i18n.ts._serverSettings.entrancePageStyle }}:</b></div>
-				<div>{{ serverSettings.clientOptions?.entrancePageStyle }}</div>
-			</div>
-
-			<div>
 				<div><b>{{ i18n.ts._role.baseRole }}/{{ i18n.ts._role._options.rateLimitFactor }}:</b></div>
 				<div>{{ defaultPolicies.rateLimitFactor }}</div>
 			</div>
@@ -244,7 +239,7 @@ const serverSettings = computed<Misskey.entities.AdminUpdateMetaRequest>(() => {
 		enableFanoutTimelineDbFallback: q_use.value === 'single',
 		enableReactionsBuffering,
 		clientOptions: {
-			entrancePageStyle: q_use.value === 'open' ? 'classic' : 'simple',
+			entrancePageStyle: 'simple',
 		},
 	};
 });
