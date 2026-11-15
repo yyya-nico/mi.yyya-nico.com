@@ -55,9 +55,9 @@ test.describe('After setup instance', () => {
 	});
 
 	test('signup', async ({ page }) => {
-		await visitHome(page);
+		await page.goto(`${BASE_URL}/login`);
 
-		await page.getByTestId('signup').click();
+		await page.locator('button[aria-current="page"] + button').click();
 		await page.getByTestId('signup-rules-continue').waitFor({ state: 'visible' });
 		test.expect(await page.getByTestId('signup-rules-continue').isDisabled()).toBeTruthy();
 
@@ -82,9 +82,9 @@ test.describe('After setup instance', () => {
 
 	test('signup with duplicated username', async ({ page }) => {
 		await registerUser('alice', 'alice1234');
-		await visitHome(page);
+		await page.goto(`${BASE_URL}/login`);
 
-		await page.getByTestId('signup').click();
+		await page.locator('button[aria-current="page"] + button').click();
 		await page.getByTestId('signup-rules-continue').waitFor({ state: 'visible' });
 		test.expect(await page.getByTestId('signup-rules-continue').isDisabled()).toBeTruthy();
 
@@ -115,9 +115,7 @@ test.describe('After user signup', () => {
 	});
 
 	test('signin', async ({ page }) => {
-		await visitHome(page);
-
-		await page.getByTestId('signin').click();
+		await page.goto(`${BASE_URL}/login`);
 
 		await page.getByTestId('signin-page-input').waitFor({ state: 'visible', timeout: 10000 });
 		await locateMkInput(page, 'signin-username').fill('alice');
@@ -141,9 +139,7 @@ test.describe('After user signup', () => {
 			},
 		});
 
-		await visitHome(page);
-
-		await page.getByTestId('signin').click();
+		await page.goto(`${BASE_URL}/login`);
 
 		await page.getByTestId('signin-page-input').waitFor({ state: 'visible', timeout: 10000 });
 		await locateMkInput(page, 'signin-username').fill('alice');

@@ -75,8 +75,7 @@ export async function waitApiResponse(page: Page, path: string, timeout = 30_000
 }
 
 export async function signIn(page: Page, baseUrl: string, username: string, password: string): Promise<void> {
-	await visitHome(page, baseUrl);
-	await page.getByTestId('signin').click();
+	await page.goto(`${baseUrl}/login`);
 	await page.getByTestId('signin-page-input').waitFor({ state: 'visible', timeout: 10_000 });
 	await locateMkInput(page, 'signin-username').fill(username);
 	await page.keyboard.press('Enter');
@@ -96,13 +95,15 @@ export async function acceptSignupRules(page: Page): Promise<void> {
 
 export async function signupThroughUi(
 	page: Page,
+	baseUrl: string,
 	options: {
 		username: string;
 		password: string;
 		invitationCode?: string;
 	},
 ): Promise<void> {
-	await page.getByTestId('signup').click();
+	await page.goto(`${baseUrl}/login`);
+	await page.locator('button[aria-current="page"] + button').click();
 	await acceptSignupRules(page);
 
 	await locateMkInput(page, 'signup-username').fill(options.username);
