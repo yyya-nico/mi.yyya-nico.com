@@ -123,6 +123,9 @@ import { openInstanceMenu } from '@/ui/_common_/common.js';
 }
 
 .sidebar {
+	position: sticky;
+	top: 0;
+	align-self: start;
 	min-width: 0;
 }
 
